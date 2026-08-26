@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zombie Survival Companion v6.2</title>
+    <title>Zombie Survival Companion v6.14</title>
     <style>
         :root {
             --bg-color: #1a1a1a;
@@ -59,6 +59,7 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
+            padding-bottom: 10px;
         }
 
         .form-group {
@@ -73,7 +74,7 @@
             color: #aaa;
         }
 
-        select, input[type="text"] {
+        select, input[type="text"], input[type="number"] {
             width: 100%;
             padding: 10px;
             border-radius: 8px;
@@ -81,6 +82,42 @@
             background: #333;
             color: #fff;
             font-size: 15px;
+        }
+
+        .custom-settings-box {
+            background: #383838;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .custom-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #fff;
+            background: #333;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+
+        .checkbox-label input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-color);
+            cursor: pointer;
         }
 
         .player-setup-card {
@@ -149,6 +186,11 @@
             padding-bottom: 4px;
         }
 
+        .top-bar-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
         .btn-icon-menu {
             background: #444;
             border: 1px solid #555;
@@ -162,7 +204,7 @@
 
         .btn-icon-menu:active { background: #555; }
 
-        /* HUD (Vergrößert) */
+        /* HUD */
         .hud {
             display: flex;
             justify-content: space-around;
@@ -214,7 +256,7 @@
             justify-content: center;
         }
 
-        /* SURVIVORS PANEL (Vergrößerte Icons) */
+        /* SURVIVORS PANEL */
         .survivors-container {
             background: #222;
             padding: 6px 8px;
@@ -223,8 +265,8 @@
             display: flex;
             flex-direction: column;
             min-height: 0;
-            max-height: 175px;
-            flex: 1.4;
+            max-height: 140px;
+            flex: 1.3;
         }
 
         .survivors-grid {
@@ -277,62 +319,117 @@
             width: 100%;
         }
 
-        /* ZOMBIE DISPLAY */
+        /* ÄUSSERE ZOMBIE-DISPLAY-BOX (GANZE BREITE) */
         .zombie-display {
             display: flex;
             flex-direction: column;
             align-items: center;
             background: #222;
-            padding: 10px;
             border-radius: 12px;
             border: 1px solid #444;
-            flex: 1.1;
-            justify-content: center;
+            flex: 1.9;
+            justify-content: space-between;
             min-height: 0;
+            position: relative;
+            overflow: hidden;
+            padding: 8px 10px 10px 10px;
         }
 
+        /* GANZ OBEN ANGEHEFTETE DISTANZ-LEISTE */
+        .distance-top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.5);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3;
+        }
+
+        .distance-progress-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            background: var(--success-color);
+            opacity: 0.65;
+            transition: width 0.2s ease-out, background-color 0.3s ease;
+            z-index: 1;
+        }
+
+        .distance-hud-inline {
+            position: relative;
+            z-index: 2;
+            font-size: 18px;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+            letter-spacing: 1px;
+        }
+
+        /* INHALTS-WRAPPER UNTER DER ÄUSSEREN TOP-LEISTE */
+        .zombie-content-wrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            margin-top: 28px;
+        }
+
+        /* INNERE ZOMBIE BOX */
         .zombie-box {
-            width: 85px;
-            height: 85px;
-            border-radius: 14px;
+            width: 100%;
+            max-width: 260px;
+            height: 90px;
+            border-radius: 12px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             position: relative;
-            box-shadow: 0 6px 14px rgba(0,0,0,0.6);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             transition: transform 0.1s;
+            border: 2px solid rgba(255,255,255,0.2);
         }
 
-        .zombie-box.beisser { background-color: #f1c40f; color: #000; }
-        .zombie-box.sprinter { background-color: #e74c3c; color: #fff; }
-        .zombie-box.bomber { background-color: #000000; color: #fff; border: 3px solid #555; }
+        .zombie-box.beisser { background-color: #553311; color: #fff; }
+        .zombie-box.sprinter { background-color: #551111; color: #fff; }
+        .zombie-box.bomber { background-color: #111; color: #fff; border: 3px solid #555; }
 
-        .zombie-icon { font-size: 44px; }
+        .zombie-icon { font-size: 36px; line-height: 1; }
         
         .skulls {
             position: absolute;
             top: 4px;
+            right: 8px;
             font-size: 11px;
             display: flex;
-            gap: 3px;
+            gap: 2px;
         }
 
         .zombie-title {
-            margin-top: 6px;
-            font-size: 17px;
+            margin-top: 2px;
+            font-size: 14px;
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
         }
 
         .health-bar-container {
             width: 100%;
-            max-width: 240px;
+            max-width: 260px;
             background: #444;
-            height: 16px;
-            border-radius: 8px;
-            margin-top: 6px;
+            height: 12px;
+            border-radius: 6px;
+            margin-top: 5px;
             overflow: hidden;
             border: 1px solid #555;
         }
@@ -357,7 +454,7 @@
 
         .btn-damage {
             flex: 1;
-            padding: 18px 10px;
+            padding: 16px 10px;
             background: #e67e22;
             color: white;
             border: none;
@@ -486,12 +583,52 @@
         <div id="players-container"></div>
 
         <div class="form-group">
-            <label for="difficulty">Schwierigkeitsgrad:</label>
-            <select id="difficulty">
-                <option value="easy">Einfach (Viele Überlebende, wenig Zombies)</option>
-                <option value="medium" selected>Mittel (Ausgeglichen)</option>
-                <option value="hard">Schwer (Wenig Überlebende, viele Zombies)</option>
+            <label for="difficulty">Spielmodus / Schwierigkeit:</label>
+            <select id="difficulty" onchange="toggleCustomSettings()">
+                <option value="easy">Einfach (Verhältnis 4:3)</option>
+                <option value="medium" selected>Mittel (Verhältnis 4:2)</option>
+                <option value="hard">Schwer (Verhältnis 4:1)</option>
+                <option value="custom">⚙️ Benutzerdefiniert</option>
             </select>
+        </div>
+
+        <div class="form-group">
+            <label for="zombie-speed">Zombiegeschwindigkeit:</label>
+            <select id="zombie-speed">
+                <option value="slow">Langsam</option>
+                <option value="medium" selected>Mittel</option>
+                <option value="fast">Schnell</option>
+            </select>
+        </div>
+
+        <!-- BENUTZERDEFINIERTE EINSTELLUNGEN -->
+        <div id="custom-settings-box" class="custom-settings-box hidden">
+            <label style="color: var(--highlight-color); margin-bottom: 2px;">Benutzerdefinierte Anzahl:</label>
+            <div class="custom-grid">
+                <div class="form-group">
+                    <label>Beißer:</label>
+                    <input type="number" id="custom-beisser" value="10" min="0" max="50">
+                </div>
+                <div class="form-group">
+                    <label>Sprinter:</label>
+                    <input type="number" id="custom-sprinter" value="5" min="0" max="30">
+                </div>
+                <div class="form-group">
+                    <label>Bomber:</label>
+                    <input type="number" id="custom-bomber" value="2" min="0" max="20">
+                </div>
+                <div class="form-group">
+                    <label>Überlebende (NPCs):</label>
+                    <input type="number" id="custom-survivors" value="8" min="0" max="50">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="checkbox-label">
+                <input type="checkbox" id="enable-distance" checked>
+                <span>Aktive Zombie-Distanz & Annäherung aktivieren</span>
+            </label>
         </div>
 
         <button class="btn" style="margin-top: auto;" onclick="startGame()">Spiel Starten</button>
@@ -501,7 +638,10 @@
     <div id="game-screen" class="hidden">
         <div class="top-bar">
             <span style="font-weight: bold; font-size: 13px; color: #aaa;">ZOMBIE COMPANION</span>
-            <button class="btn-icon-menu" onclick="promptQuit()">⚙️ Menü</button>
+            <div class="top-bar-buttons">
+                <button class="btn-icon-menu" id="btn-pause" onclick="togglePause()">⏸️ Pause</button>
+                <button class="btn-icon-menu" onclick="promptQuit()">⚙️ Menü</button>
+            </div>
         </div>
 
         <div class="hud">
@@ -528,17 +668,27 @@
             <div class="survivors-grid" id="survivors-grid"></div>
         </div>
 
+        <!-- ÄUSSERE ZOMBIE-DISPLAY-BOX -->
         <div class="zombie-display">
-            <div id="zombie-box" class="zombie-box">
-                <div id="skulls-container" class="skulls"></div>
-                <div class="zombie-icon">🧟</div>
+            <!-- Distanz-Leiste -->
+            <div id="distance-top-bar" class="distance-top-bar">
+                <div id="distance-bar-bg" class="distance-progress-bg"></div>
+                <div id="distance-container-inline" class="distance-hud-inline">📍 <span id="distance-text">50m</span></div>
             </div>
-            <strong id="zombie-name" class="zombie-title">-</strong>
-            
-            <div id="hb-container" class="health-bar-container">
-                <div id="health-bar" class="health-bar-fill"></div>
+
+            <!-- Innerer Bereich für Zombie und HP -->
+            <div class="zombie-content-wrapper">
+                <div id="zombie-box" class="zombie-box">
+                    <div id="skulls-container" class="skulls"></div>
+                    <div class="zombie-icon">🧟</div>
+                    <strong id="zombie-name" class="zombie-title">-</strong>
+                </div>
+                
+                <div id="hb-container" class="health-bar-container">
+                    <div id="health-bar" class="health-bar-fill"></div>
+                </div>
+                <span id="health-text" style="font-size: 11px; margin-top: 3px; font-weight: bold;">0 / 0 Leben</span>
             </div>
-            <span id="health-text" style="font-size: 12px; margin-top: 4px; font-weight: bold;">0 / 0 Leben</span>
         </div>
 
         <div class="action-buttons">
@@ -610,6 +760,14 @@
     let currentZombie = null;
     let medikits = 0;
     let isGameOver = false;
+    
+    // Distance & Timer State
+    let distanceEnabled = true;
+    let isPaused = false;
+    let timerInterval = null;
+    let totalZombieTime = 25; 
+    let remainingZombieTime = 25;
+    let speedModifier = 1.0;
 
     function getRandomInt(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -622,7 +780,6 @@
 
         for (let i = 0; i < count; i++) {
             const defaultChar = availableCharacters[i % availableCharacters.length];
-            
             const div = document.createElement('div');
             div.className = 'player-setup-card';
             div.innerHTML = `
@@ -639,6 +796,16 @@
                 <input type="hidden" id="player-icon-${i}" value="${defaultChar.icon}">
             `;
             container.appendChild(div);
+        }
+    }
+
+    function toggleCustomSettings() {
+        const diff = document.getElementById('difficulty').value;
+        const customBox = document.getElementById('custom-settings-box');
+        if (diff === 'custom') {
+            customBox.classList.remove('hidden');
+        } else {
+            customBox.classList.add('hidden');
         }
     }
 
@@ -676,6 +843,16 @@
 
     function startGame() {
         isGameOver = false;
+        isPaused = false;
+        document.getElementById('btn-pause').innerText = "⏸️ Pause";
+        
+        distanceEnabled = document.getElementById('enable-distance').checked;
+
+        const speedSetting = document.getElementById('zombie-speed').value;
+        if (speedSetting === 'slow') speedModifier = 2.0;
+        else if (speedSetting === 'medium') speedModifier = 1.0;
+        else if (speedSetting === 'fast') speedModifier = 0.5;
+
         const pCount = parseInt(document.getElementById('player-count').value);
         playersData = [];
         for (let i = 0; i < pCount; i++) {
@@ -686,20 +863,29 @@
         }
 
         const diff = document.getElementById('difficulty').value;
-        let bMin, bMax, sMin, sMax, boMin, boMax, survMin, survMax;
+        let beisserCount, sprinterCount, bomberCount, npcSurvivorCount;
 
-        if (diff === 'easy') {
-            bMin = 7; bMax = 12; sMin = 3; sMax = 5; boMin = 1; boMax = 2; survMin = 7; survMax = 10;
-        } else if (diff === 'medium') {
-            bMin = 13; bMax = 17; sMin = 5; sMax = 7; boMin = 2; boMax = 4; survMin = 5; survMax = 8;
-        } else { // hard
-            bMin = 18; bMax = 25; sMin = 7; sMax = 10; boMin = 4; boMax = 6; survMin = 2; survMax = 4;
+        if (diff === 'custom') {
+            beisserCount = parseInt(document.getElementById('custom-beisser').value) || 0;
+            sprinterCount = parseInt(document.getElementById('custom-sprinter').value) || 0;
+            bomberCount = parseInt(document.getElementById('custom-bomber').value) || 0;
+            npcSurvivorCount = parseInt(document.getElementById('custom-survivors').value) || 0;
+        } else {
+            let bMin, bMax, sMin, sMax, boMin, boMax, survMin, survMax;
+
+            if (diff === 'easy') {
+                bMin = 9; bMax = 14; sMin = 4; sMax = 6; boMin = 2; boMax = 3; survMin = 11; survMax = 17;
+            } else if (diff === 'medium') {
+                bMin = 14; bMax = 19; sMin = 6; sMax = 9; boMin = 3; boMax = 5; survMin = 9; survMax = 13;
+            } else { // hard
+                bMin = 20; bMax = 28; sMin = 8; sMax = 12; boMin = 5; boMax = 7; survMin = 5; survMax = 9;
+            }
+
+            beisserCount = getRandomInt(bMin, bMax);
+            sprinterCount = getRandomInt(sMin, sMax);
+            bomberCount = getRandomInt(boMin, boMax);
+            npcSurvivorCount = getRandomInt(survMin, survMax);
         }
-
-        const beisserCount = getRandomInt(bMin, bMax);
-        const sprinterCount = getRandomInt(sMin, sMax);
-        const bomberCount = getRandomInt(boMin, boMax);
-        const npcSurvivorCount = getRandomInt(survMin, survMax);
 
         zombiesQueue = [];
         for (let i = 0; i < beisserCount; i++) zombiesQueue.push({ name: 'Beißer', maxHp: 1, currentHp: 1, skulls: 1, class: 'beisser' });
@@ -727,6 +913,13 @@
         document.getElementById('medikit-count').innerText = medikits;
         document.getElementById('setup-screen').classList.add('hidden');
         document.getElementById('game-screen').classList.remove('hidden');
+
+        const distanceTopBar = document.getElementById('distance-top-bar');
+        if (distanceEnabled) {
+            distanceTopBar.classList.remove('hidden');
+        } else {
+            distanceTopBar.classList.add('hidden');
+        }
 
         nextZombie();
     }
@@ -757,7 +950,28 @@
         }
     }
 
+    function killSingleSurvivor() {
+        const aliveCards = Array.from(document.querySelectorAll('.survivor-card:not(.dead)'));
+        if (aliveCards.length > 0) {
+            aliveCards[aliveCards.length - 1].classList.add('dead');
+            updateSurvivorCount();
+        }
+    }
+
+    function killDoubleSurvivor() {
+        const aliveCards = Array.from(document.querySelectorAll('.survivor-card:not(.dead)'));
+        if (aliveCards.length > 0) {
+            aliveCards[aliveCards.length - 1].classList.add('dead');
+        }
+        const remainingAliveCards = Array.from(document.querySelectorAll('.survivor-card:not(.dead)'));
+        if (remainingAliveCards.length > 0) {
+            remainingAliveCards[remainingAliveCards.length - 1].classList.add('dead');
+        }
+        updateSurvivorCount();
+    }
+
     function nextZombie() {
+        stopTimer();
         const skullsContainer = document.getElementById('skulls-container');
         const hbContainer = document.getElementById('hb-container');
 
@@ -766,6 +980,7 @@
             document.getElementById('zombie-name').innerText = "ALLE BESIEGT";
             document.getElementById('zombie-box').className = 'zombie-box';
             document.getElementById('zombie-box').style.background = '#2ecc71';
+            document.getElementById('distance-top-bar').classList.add('hidden');
             skullsContainer.innerHTML = '🎉';
             document.getElementById('health-bar').style.width = '0%';
             document.getElementById('health-text').innerText = 'ENDE';
@@ -780,7 +995,113 @@
 
         currentZombie = zombiesQueue.shift();
         document.getElementById('zombie-count').innerText = zombiesQueue.length + 1;
+        
+        if (distanceEnabled) {
+            document.getElementById('distance-top-bar').classList.remove('hidden');
+            const diff = document.getElementById('difficulty').value;
+            let baseTime = 25;
+            
+            if (currentZombie.class === 'beisser') {
+                baseTime = (diff === 'easy') ? 25 : 15;
+            } else if (currentZombie.class === 'sprinter') {
+                baseTime = (diff === 'easy') ? 15 : 7.5;
+            } else if (currentZombie.class === 'bomber') {
+                baseTime = (diff === 'easy') ? 80 : 45;
+            }
+            
+            totalZombieTime = baseTime * speedModifier;
+            remainingZombieTime = totalZombieTime;
+            startTimer();
+        }
+
         renderZombie();
+    }
+
+    function startTimer() {
+        stopTimer();
+        if (!distanceEnabled || isGameOver || isPaused) return;
+
+        timerInterval = setInterval(() => {
+            if (isPaused || isGameOver) return;
+            remainingZombieTime -= 0.5;
+            updateDistanceDisplay();
+
+            if (remainingZombieTime <= 0) {
+                stopTimer();
+                if (currentZombie && currentZombie.class === 'bomber') {
+                    killDoubleSurvivor();
+                } else {
+                    killSingleSurvivor();
+                }
+                
+                if (!isGameOver) {
+                    nextZombie();
+                }
+            }
+        }, 500);
+    }
+
+    function stopTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+
+    function togglePause() {
+        if (isGameOver || !distanceEnabled) return;
+        isPaused = !isPaused;
+        const pauseBtn = document.getElementById('btn-pause');
+        
+        if (isPaused) {
+            stopTimer();
+            pauseBtn.innerText = "▶️ Weiter";
+            pauseBtn.style.background = "#2ecc71";
+        } else {
+            startTimer();
+            pauseBtn.innerText = "⏸️ Pause";
+            pauseBtn.style.background = "#444";
+        }
+    }
+
+    function updateDistanceDisplay() {
+        if (!distanceEnabled || !currentZombie) return;
+        
+        let maxDist = 50;
+        if (currentZombie.class === 'sprinter') maxDist = 30;
+        if (currentZombie.class === 'bomber') maxDist = (document.getElementById('difficulty').value === 'easy') ? 160 : 90;
+
+        const currentDist = Math.max(0, Math.round((remainingZombieTime / totalZombieTime) * maxDist));
+        document.getElementById('distance-text').innerText = `${currentDist}m`;
+
+        const timePercentage = Math.max(0, (remainingZombieTime / totalZombieTime) * 100);
+        const bgBar = document.getElementById('distance-bar-bg');
+        bgBar.style.width = `${timePercentage}%`;
+
+        if (timePercentage > 50) {
+            bgBar.style.background = '#27ae60';
+        } else if (timePercentage > 20) {
+            bgBar.style.background = '#d35400';
+        } else {
+            bgBar.style.background = '#c0392b';
+        }
+    }
+
+    /* NEU: Wirft den Zombie bei Treffer/Verwundung um 5 Meter zurück */
+    function knockbackZombie() {
+        if (!distanceEnabled || !currentZombie) return;
+
+        let maxDist = 50;
+        if (currentZombie.class === 'sprinter') maxDist = 30;
+        if (currentZombie.class === 'bomber') maxDist = (document.getElementById('difficulty').value === 'easy') ? 160 : 90;
+
+        // Berechne, wie viel Zeit (in Sekunden) 5 Metern entspricht
+        const timePerMeter = totalZombieTime / maxDist;
+        const timeBonus = 5 * timePerMeter;
+
+        // Addiere die Zeit dazu (maximal bis zur vollen Startzeit)
+        remainingZombieTime = Math.min(totalZombieTime, remainingZombieTime + timeBonus);
+        updateDistanceDisplay();
     }
 
     function renderZombie() {
@@ -803,16 +1124,24 @@
         const pct = (currentZombie.currentHp / currentZombie.maxHp) * 100;
         document.getElementById('health-bar').style.width = `${Math.max(0, pct)}%`;
         document.getElementById('health-text').innerText = `${currentZombie.currentHp.toFixed(1).replace('.0','')} / ${currentZombie.maxHp} Leben`;
+
+        if (distanceEnabled) {
+            updateDistanceDisplay();
+        }
     }
 
     function dealDamage(amount) {
-        if (!currentZombie || isGameOver) return;
+        if (!currentZombie || isGameOver || isPaused) return;
 
         currentZombie.currentHp -= amount;
         
+        // Zombie visuell kurz pulsieren lassen
         const box = document.getElementById('zombie-box');
-        box.style.transform = 'scale(1.08)';
+        box.style.transform = 'scale(1.05)';
         setTimeout(() => box.style.transform = 'scale(1)', 100);
+
+        // 5 Meter zurückwerfen bei jeder Aktion
+        knockbackZombie();
 
         if (currentZombie.currentHp <= 0) {
             currentZombie.currentHp = 0;
@@ -830,6 +1159,7 @@
 
     function triggerGameOver(victory) {
         isGameOver = true;
+        stopTimer();
         const modal = document.getElementById('end-modal');
         const title = document.getElementById('end-modal-title');
         const text = document.getElementById('end-modal-text');
@@ -848,10 +1178,12 @@
     }
 
     function promptQuit() {
+        stopTimer();
         document.getElementById('quit-modal').classList.remove('hidden');
     }
 
     function closeQuitModal() {
+        if (!isPaused && !isGameOver) startTimer();
         document.getElementById('quit-modal').classList.add('hidden');
     }
 
@@ -861,7 +1193,9 @@
     }
 
     function resetToSetup() {
+        stopTimer();
         document.getElementById('end-modal').classList.add('hidden');
+        document.getElementById('quit-modal').classList.add('hidden');
         document.getElementById('game-screen').classList.add('hidden');
         document.getElementById('setup-screen').classList.remove('hidden');
     }
