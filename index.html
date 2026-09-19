@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zombie Survival Companion v7.1</title>
+    <title>Zombie Survival Companion v7.2</title>
     <style>
         :root {
             --bg-color: #1a1a1a;
@@ -161,9 +161,8 @@
             align-items: center;
             gap: 8px;
             font-weight: bold;
+            font-size: 16px;
         }
-
-        .char-select-preview img { width: 24px; height: 24px; border-radius: 4px; object-fit: cover; }
 
         .btn {
             width: 100%;
@@ -312,10 +311,7 @@
             border-radius: 50%;
             margin-bottom: 3px;
             border: 2px solid transparent;
-            overflow: hidden;
         }
-
-        .survivor-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
         .survivor-card.player .survivor-avatar {
             border-color: var(--highlight-color);
@@ -549,7 +545,7 @@
             background: #444;
         }
 
-        .modal-item img { width: 32px; height: 32px; object-fit: cover; border-radius: 4px; }
+        .modal-item span.icon { font-size: 24px; }
 
         .modal-actions {
             display: flex;
@@ -781,16 +777,16 @@
 
 <script>
     const availableCharacters = [
-        { icon: '1000007906.png', label: 'Farmer (M)', gender: 'm' },
-        { icon: '1000007907.png', label: 'Arzt (M)', gender: 'm' },
-        { icon: '1000007908.png', label: 'Polizist (M)', gender: 'm' },
-        { icon: '1000007911.png', label: 'Feuerwehrmann (M)', gender: 'm' },
-        { icon: '1000007912.png', label: 'Söldner (M)', gender: 'm' },
-        { icon: '1000007913.png', label: 'Farmerin (W)', gender: 'f' },
-        { icon: '1000007906.png', label: 'Ärztin (W)', gender: 'f' },
-        { icon: '1000007907.png', label: 'Polizistin (W)', gender: 'f' },
-        { icon: '1000007908.png', label: 'Feuerwehrfrau (W)', gender: 'f' },
-        { icon: '1000007911.png', label: 'Überlebende (W)', gender: 'f' }
+        { icon: '🧑‍🌾', label: 'Farmer (M)', gender: 'm' },
+        { icon: '👨‍⚕️', label: 'Arzt (M)', gender: 'm' },
+        { icon: '👮‍♂️', label: 'Polizist (M)', gender: 'm' },
+        { icon: '👨‍🚒', label: 'Feuerwehrmann (M)', gender: 'm' },
+        { icon: '🪖', label: 'Söldner (M)', gender: 'm' },
+        { icon: '👩‍🌾', label: 'Farmerin (W)', gender: 'f' },
+        { icon: '👩‍⚕️', label: 'Ärztin (W)', gender: 'f' },
+        { icon: '👮‍♀️', label: 'Polizistin (W)', gender: 'f' },
+        { icon: '👩‍🚒', label: 'Feuerwehrfrau (W)', gender: 'f' },
+        { icon: '👩‍🎤', label: 'Überlebende (W)', gender: 'f' }
     ];
 
     let selectedPlayerIndexForModal = null;
@@ -826,7 +822,7 @@
                 <label>Charakter:</label>
                 <div class="char-select-btn" onclick="openCharModal(${i})">
                     <div class="char-select-preview" id="preview-${i}">
-                        <img src="${defaultChar.icon}" alt="Avatar">
+                        <span>${defaultChar.icon}</span>
                         <span>${defaultChar.label}</span>
                     </div>
                     <span>Ändern ⚙️</span>
@@ -874,7 +870,7 @@
             const item = document.createElement('div');
             item.className = `modal-item ${isSelected ? 'selected' : ''}`;
             item.innerHTML = `
-                <img src="${char.icon}" alt="Icon">
+                <span class="icon">${char.icon}</span>
                 <span class="icon-label">${char.label}</span>
             `;
             item.onclick = () => selectCharacter(char);
@@ -887,7 +883,7 @@
             document.getElementById(`player-icon-${selectedPlayerIndexForModal}`).value = char.icon;
             document.getElementById(`player-label-${selectedPlayerIndexForModal}`).value = char.label;
             document.getElementById(`preview-${selectedPlayerIndexForModal}`).innerHTML = `
-                <img src="${char.icon}" alt="Avatar">
+                <span>${char.icon}</span>
                 <span>${char.label}</span>
             `;
         }
@@ -978,12 +974,13 @@
         document.getElementById('survivor-count').innerText = totalInitialSurvivors;
 
         playersData.forEach(p => {
-            grid.appendChild(createSurvivorCard(p.icon, p.name, true, true));
+            grid.appendChild(createSurvivorCard(p.icon, p.name, true));
         });
 
+        const npcIcons = ['🧑', '👨', '👩', '👱‍♂️', '👱‍♀️'];
         for (let i = 0; i < npcSurvivorCount; i++) {
-            const genericIcon = Math.random() > 0.5 ? '1000007906.png' : '1000007907.png';
-            grid.appendChild(createSurvivorCard(genericIcon, 'Überlebender', false, true));
+            const genericIcon = npcIcons[Math.floor(Math.random() * npcIcons.length)];
+            grid.appendChild(createSurvivorCard(genericIcon, 'Überlebender', false));
         }
 
         medikits = 0;
@@ -1000,11 +997,11 @@
         nextZombie();
     }
 
-    function createSurvivorCard(icon, name, isPlayer, isImg) {
+    function createSurvivorCard(icon, name, isPlayer) {
         const card = document.createElement('div');
         card.className = `survivor-card ${isPlayer ? 'player' : ''}`;
         card.innerHTML = `
-            <div class="survivor-avatar"><img src="${icon}" alt="Avatar"></div>
+            <div class="survivor-avatar">${icon}</div>
             <span class="survivor-name">${name}</span>
         `;
         card.onclick = function() {
@@ -1032,14 +1029,6 @@
             aliveCards[aliveCards.length - 1].classList.add('dead');
             updateSurvivorCount();
         }
-    }
-
-    function killDoubleSurvivor() {
-        const aliveCards = Array.from(document.querySelectorAll('.survivor-card:not(.dead)'));
-        if (aliveCards.length > 0) aliveCards[aliveCards.length - 1].classList.add('dead');
-        const remainingAliveCards = Array.from(document.querySelectorAll('.survivor-card:not(.dead)'));
-        if (remainingAliveCards.length > 0) remainingAliveCards[remainingAliveCards.length - 1].classList.add('dead');
-        updateSurvivorCount();
     }
 
     function killMultipleSurvivors(count) {
