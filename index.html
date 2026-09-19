@@ -183,8 +183,8 @@ font-size: 16px;
 }
 
 .char-icon {
-width: 28px;
-height: 28px;
+width: 52px;
+height: 52px;
 object-fit: contain;
 flex-shrink: 0;
 background: #fff;
@@ -193,8 +193,8 @@ padding: 2px;
 }
 
 .char-icon-sm {
-width: 24px;
-height: 24px;
+width: 32px;
+height: 32px;
 object-fit: contain;
 flex-shrink: 0;
 background: #fff;
@@ -553,7 +553,8 @@ margin-top: 28px;
 .zombie-box {
 width: 100%;
 max-width: 260px;
-height: 96px;
+min-height: 96px;
+padding: 6px 0;
 border-radius: 12px;
 display: flex;
 flex-direction: column;
@@ -578,6 +579,18 @@ border: 2px solid rgba(255,255,255,0.2);
 .zombie-box.mutant { background-color: #194476; border: 3px solid #F6A74B; }
 
 .zombie-img-icon { width: 56px; height: 56px; object-fit: contain; }
+.zombie-box.beisser .zombie-img-icon { width: 72px; height: 72px; }
+
+.zombie-effect-text {
+font-size: 11px;
+color: #ccc;
+font-style: italic;
+text-align: center;
+max-width: 260px;
+line-height: 1.3;
+margin-top: 4px;
+min-height: 14px;
+}
 
 .skulls {
 position: absolute;
@@ -731,11 +744,33 @@ border-radius: 8px;
 cursor: pointer;
 border: 2px solid transparent;
 color: #fff;
+text-align: left;
 }
 
 .modal-item.selected {
 border-color: var(--highlight-color);
 background: #444;
+}
+
+.modal-item-info {
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+justify-content: center;
+text-align: left;
+gap: 3px;
+min-width: 0;
+}
+
+.modal-item-name {
+font-weight: bold;
+font-size: 15px;
+}
+
+.modal-item-ability {
+font-size: 11px;
+color: #aaa;
+line-height: 1.3;
 }
 
 .ability-row {
@@ -854,8 +889,8 @@ cursor: pointer;
 <div class="zombie-section-divider">🆕 Neue Zombiearten</div>
 
 <div class="zombie-toggle-item">
-<label class="checkbox-label"><input type="checkbox" id="toggle-haui" checked><img src="Haui.svg" class="toggle-icon" alt="">Haui (Duo)</label>
-<div class="zombie-desc">0.5 Leben je Zombie – taucht immer im Doppelpack auf. Zieht bei „Verfehlt" 1 Überlebenden komplett ab.</div>
+<label class="checkbox-label"><input type="checkbox" id="toggle-haui" checked><img src="Haui.svg" class="toggle-icon" alt="">Haui (Schwächling)</label>
+<div class="zombie-desc">0,5 Leben. Erscheint einzeln und häufiger. Zieht bei „Verfehlt" nur ein halbes Leben ab.</div>
 </div>
 
 <div class="zombie-toggle-item">
@@ -875,7 +910,7 @@ cursor: pointer;
 
 <div class="zombie-toggle-item">
 <label class="checkbox-label"><input type="checkbox" id="toggle-mutant" checked><img src="Mutant.svg" class="toggle-icon" alt="">Mutant (Zäher Brocken)</label>
-<div class="zombie-desc">4 Leben, nimmt nur halben Schaden. Zieht bei „Verfehlt" 2 Leben ab. Lässt bei Sieg eine Schutzweste fallen (extra Leben für einen Überlebenden).</div>
+<div class="zombie-desc">4 Leben. Kopftreffer wirken voll, Verwunden/Treffer nur halb – die Schwachstelle ist der Kopf. Zieht bei „Verfehlt" 2 Leben ab. Lässt bei Sieg eine Schutzweste fallen (extra Leben für einen Überlebenden).</div>
 </div>
 
 </div>
@@ -890,7 +925,7 @@ cursor: pointer;
 <div class="form-group"><label>Schreierin:</label><input type="number" id="custom-schreierin" value="3" min="0" max="20"></div>
 <div class="form-group"><label>Verrückter:</label><input type="number" id="custom-verrueckter" value="3" min="0" max="20"></div>
 <div class="form-group"><label>Monster:</label><input type="number" id="custom-monster" value="1" min="0" max="10"></div>
-<div class="form-group"><label>Haui (Paare):</label><input type="number" id="custom-haui" value="2" min="0" max="15"></div>
+<div class="form-group"><label>Haui:</label><input type="number" id="custom-haui" value="4" min="0" max="30"></div>
 <div class="form-group"><label>Schlurfer:</label><input type="number" id="custom-schlurfer" value="3" min="0" max="20"></div>
 <div class="form-group"><label>Krebs:</label><input type="number" id="custom-krebs" value="1" min="0" max="10"></div>
 <div class="form-group"><label>Spucker:</label><input type="number" id="custom-spucker" value="3" min="0" max="20"></div>
@@ -936,7 +971,7 @@ cursor: pointer;
 <div class="resource-item">
 <span class="resource-label">💉 Medikits</span>
 <div class="medikit-controls">
-<button class="btn-mini" onclick="updateMedikit(-1)">-</button>
+<button class="btn-mini" onclick="useMedikit()">-</button>
 <span class="hud-value-sm" id="medikit-count">0</span>
 <button class="btn-mini" onclick="updateMedikit(1)">+</button>
 </div>
@@ -978,6 +1013,7 @@ cursor: pointer;
 <div id="health-bar" class="health-bar-fill"></div>
 </div>
 <span id="health-text" style="font-size: 11px; margin-top: 3px; font-weight: bold;">0 / 0 Leben</span>
+<span id="zombie-effect-text" class="zombie-effect-text"></span>
 </div>
 </div>
 
@@ -1052,19 +1088,19 @@ const availableCharacters = [
 { key: 'doctor', icon: '009-doctor.svg', label: 'Arzt', gender: 'm' },
 { key: 'doctor', icon: '021-Pharmacist.svg', label: 'Ärztin', gender: 'f' },
 { key: 'farmer', icon: '013-farmer.svg', label: 'Farmer', gender: 'm' },
-{ key: 'farmer', icon: '005-coffee maker.svg', label: 'Farmerin', gender: 'f' },
+{ key: 'farmer', icon: '005-coffee maker.svg', label: 'Barista', gender: 'f' },
 { key: 'policeman', icon: '021-policeman.svg', label: 'Polizist', gender: 'm' },
 { key: 'policeman', icon: '025-security.svg', label: 'Polizistin', gender: 'f' },
 { key: 'fireman', icon: '014-fireman.svg', label: 'Feuerwehrmann', gender: 'm' },
-{ key: 'fireman', icon: '014-blacksmith.svg', label: 'Feuerwehrfrau', gender: 'f' },
+{ key: 'fireman', icon: '014-blacksmith.svg', label: 'Schmiedin', gender: 'f' },
 { key: 'soldier', icon: '028-soldier.svg', label: 'Söldner', gender: 'm' },
 { key: 'soldier', icon: '016-shooter.svg', label: 'Söldnerin', gender: 'f' },
 { key: 'engineer', icon: '012-engineer.svg', label: 'Engineer', gender: 'm' },
 { key: 'engineer', icon: '030-welder.svg', label: 'Engineerin', gender: 'f' },
 { key: 'scientist', icon: '024-scientist.svg', label: 'Wissenschaftler', gender: 'm' },
-{ key: 'scientist', icon: '026-scientist.svg', label: 'Wissenschaftlerin', gender: 'f' },
+{ key: 'scientist', icon: '024-scientistin.svg', label: 'Wissenschaftlerin', gender: 'f' },
 { key: 'sailor', icon: '025-sailor.svg', label: 'Segler', gender: 'm' },
-{ key: 'sailor', icon: '017-news reporter.svg', label: 'Seglerin', gender: 'f' },
+{ key: 'sailor', icon: '017-news reporter.svg', label: 'Newsreporterin', gender: 'f' },
 { key: 'priest', icon: '023-priest.svg', label: 'Priester', gender: 'm' },
 { key: 'priest', icon: '019-teacher.svg', label: 'Priesterin', gender: 'f' },
 { key: 'chef', icon: '006-chef.svg', label: 'Chef', gender: 'm' },
@@ -1075,16 +1111,16 @@ const availableCharacters = [
 const GENERIC_SURVIVOR_ICONS = ['028-woman.svg', '017-worker.svg'];
 
 const PROFESSION_ABILITIES = {
-doctor: { name: '🩺 Arzt', short: '🩺 +3 Medikits', desc: 'Startet mit 3 Medikits.' },
-farmer: { name: '🌾 Farmer', short: '🌾 Verstärkung bei 2/3', desc: 'Sobald 2/3 der zu Spielbeginn geplanten Zombies besiegt sind, kommen einmalig 5 neue Überlebende als Verstärkung.' },
-policeman: { name: '👮 Polizist', short: '👮 Rüstung + Doppelschuss', desc: 'Startet mit Rüstung (+0,5 Leben, halbierter Schaden). Nach jedem Kopftreffer wird sofort ein weiterer Kopftreffer ausgelöst.' },
-fireman: { name: '🚒 Feuerwehrmann', short: '🚒 3x Schutzweste', desc: 'Rüstet zu Spielbeginn 3 Überlebende (zuerst Spieler, dann übrige) mit Schutzwesten aus.' },
-soldier: { name: '🎖️ Söldner', short: '🎖️ Rückstoß 10m / Doppelschuss', desc: 'Mit Distanz-Modus: Rückstoß-Bonus pro Treffer steigt auf 10m. Ohne Distanz-Modus: löst nach Kopftreffer stattdessen ebenfalls einen Doppelschuss aus.' },
-engineer: { name: '🔧 Engineer', short: '🔧 Weste + 5x bei 50%', desc: 'Startet mit Schutzweste. Sobald die Hälfte der Zombies besiegt ist, rüstet er einmalig 5 weitere Überlebende mit Schutzwesten aus.' },
-scientist: { name: '🔬 Wissenschaftler', short: '🔬 -2 Horde', desc: 'Schreierins Horde bei „Verfehlt" spawnt 2 Zombies weniger.' },
-sailor: { name: '⚓ Segler', short: '⚓ Immun + Bonus-Distanz', desc: 'Komplett immun gegen Spuckers Rückstoß. Bei jedem Kopftreffer zusätzlich +3m Distanz-Bonus.' },
-priest: { name: '✝️ Priester', short: '✝️ Schutzengel (3x)', desc: 'Die ersten 3 Zombie-Treffer im Spiel (bei „Verfehlt") werden ignoriert. Stirbt er selbst, kommen 2 neue Überlebende dazu.' },
-chef: { name: '🍳 Chef', short: '🍳 -75% Horde', desc: 'Schreierins Horde bei „Verfehlt" wird um 75% reduziert, weil er die Zombies weglockt.' }
+doctor: { name: '🩺 Arzt', short: '🩺 +3 Medikits', desc: 'Bringt zusätzliche Medizin mit und startet direkt mit 3 Medikits im Gepäck.' },
+farmer: { name: '🌾 Farmer', short: '🌾 +5 Verstärkung bei 2/3', desc: 'Kennt die Gegend: Sobald 2/3 aller Zombies besiegt sind, treffen einmalig 5 neue Überlebende als Verstärkung ein.' },
+policeman: { name: '👮 Polizist', short: '👮 Rüstung + Extraschuss', desc: 'Startet mit Rüstung (+0,5 Leben, halbierter Schaden). Nach jedem Kopftreffer darf er sofort noch einmal schießen.' },
+fireman: { name: '🚒 Feuerwehrmann', short: '🚒 Rüstet 3 mit Westen aus', desc: 'Rüstet zu Spielbeginn 3 Überlebende (zuerst die Spieler, dann übrige) mit Schutzwesten aus.' },
+soldier: { name: '🎖️ Söldner', short: '🎖️ Starker Rückstoß / Extraschuss', desc: 'Mit Distanz-Modus steigt sein Rückstoß-Bonus pro Treffer auf 10m. Ohne Distanz-Modus schießt er nach einem Kopftreffer stattdessen sofort noch einmal.' },
+engineer: { name: '🔧 Engineer', short: '🔧 Startweste + 5 bei 50%', desc: 'Startet selbst mit einer Schutzweste. Sobald die Hälfte aller Zombies besiegt ist, rüstet er einmalig 5 weitere Überlebende mit Westen aus.' },
+scientist: { name: '🔬 Wissenschaftler', short: '🔬 Schwächt Zombiehorden', desc: 'Analysiert die Bedrohung: Die von der Schreierin bei „Verfehlt" gerufene Horde fällt um 2 Zombies kleiner aus.' },
+sailor: { name: '⚓ Segler', short: '⚓ Immun + Bonus-Distanz', desc: 'Hat Seebeine: komplett immun gegen Spuckers Rückstoß. Bei jedem Kopftreffer gewinnt das Team zusätzlich 3m Distanz.' },
+priest: { name: '✝️ Priester', short: '✝️ Schutzengel (3x)', desc: 'Wacht als Schutzengel über das Team: Die ersten 3 Zombie-Treffer bei „Verfehlt" werden ignoriert. Stirbt er selbst, schließen sich 2 neue Überlebende an.' },
+chef: { name: '🍳 Chef', short: '🍳 Lockt Horden weg (-75%)', desc: 'Lockt die von der Schreierin gerufene Zombiehorde bei „Verfehlt" geschickt weg – sie fällt um 75% kleiner aus.' }
 };
 
 let selectedPlayerIndexForModal = null;
@@ -1111,6 +1147,26 @@ let engineerSupportFired = false;
 let initialZombieTotal = 0;
 let defeatedZombieCount = 0;
 let survivorListExpanded = false;
+
+// Maximale Anzahl an Überlebenden-Karten, die im eingeklappten Zustand gleichzeitig zu sehen sind
+// (Spieler + die zuletzt aktiven übrigen Überlebenden). Stirbt jemand aus diesem Fenster, rückt
+// automatisch der nächste noch lebende Überlebende an seine Stelle nach ("nachrücken").
+const MAX_VISIBLE_SURVIVORS = 5;
+
+// Kurzbeschreibung der Zombie-Besonderheit, die während des Spiels unterhalb des Zombies angezeigt wird.
+const ZOMBIE_EFFECTS = {
+beisser: 'Verfehlt: -1 Überlebender',
+sprinter: 'Schnell. Verfehlt: -2 Überlebende',
+bomber: 'Zäher Brocken. Verfehlt: -3 Überlebende auf einmal',
+schreierin: 'Verfehlt: -1 Überlebender + ruft Zombiehorde',
+verrueckter: 'Chaotisch. Verfehlt: -1 bis -3 Überlebende',
+monster: 'Boss. Verfehlt: -2 Überlebende auf einmal',
+haui: 'Schwächling. Verfehlt: -0,5 Leben',
+schlurfer: 'Sehr langsam & zäh. Verfehlt: -0,5 Leben',
+krebs: 'Selten. Ohne Fehlschuss besiegt: +3 Medikits',
+spucker: 'Verfehlt: -0,5 Leben + wirft Team zurück',
+mutant: 'Kopftreffer voll, sonst halber Schaden. Verfehlt: -2 Leben. Lässt Weste fallen'
+};
 
 function getRandomInt(min, max) {
 return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -1191,9 +1247,9 @@ item.className = `modal-item ${isSelected ? 'selected' : ''}`;
 const ability = PROFESSION_ABILITIES[char.key];
 item.innerHTML = `
 <img src="${char.icon}" class="char-icon" alt="">
-<div>
-<div class="icon-label" style="font-weight:bold;">${char.label}</div>
-${ability ? `<div style="font-size:11px; color:#aaa;">${ability.short}</div>` : ''}
+<div class="modal-item-info">
+<div class="modal-item-name">${char.label}</div>
+${ability ? `<div class="modal-item-ability">${ability.desc}</div>` : ''}
 </div>
 `;
 item.onclick = () => selectCharacter(char);
@@ -1245,7 +1301,7 @@ survivorListExpanded = false;
 
 const diff = document.getElementById('difficulty').value;
 let beisserCount = 0, sprinterCount = 0, bomberCount = 0, schreierinCount = 0, verrueckterCount = 0, monsterCount = 0, npcSurvivorCount = 0;
-let hauiPairs = 0, schlurferCount = 0, krebsCount = 0, spuckerCount = 0, mutantCount = 0;
+let hauiCount = 0, schlurferCount = 0, krebsCount = 0, spuckerCount = 0, mutantCount = 0;
 let baseSurvBonus = 0;
 
 if (diff === 'easy') baseSurvBonus = 5;
@@ -1259,7 +1315,7 @@ bomberCount = parseInt(document.getElementById('custom-bomber').value) || 0;
 schreierinCount = parseInt(document.getElementById('custom-schreierin').value) || 0;
 verrueckterCount = parseInt(document.getElementById('custom-verrueckter').value) || 0;
 monsterCount = parseInt(document.getElementById('custom-monster').value) || 0;
-hauiPairs = parseInt(document.getElementById('custom-haui').value) || 0;
+hauiCount = parseInt(document.getElementById('custom-haui').value) || 0;
 schlurferCount = parseInt(document.getElementById('custom-schlurfer').value) || 0;
 krebsCount = parseInt(document.getElementById('custom-krebs').value) || 0;
 spuckerCount = parseInt(document.getElementById('custom-spucker').value) || 0;
@@ -1270,15 +1326,15 @@ let bMin, bMax, sMin, sMax, boMin, boMax, survMin, survMax;
 if (diff === 'easy') {
 bMin = 9; bMax = 14; sMin = 4; sMax = 6; boMin = 2; boMax = 3; survMin = 11; survMax = 17;
 schreierinCount = 3; verrueckterCount = getRandomInt(0, 3); monsterCount = 1;
-hauiPairs = getRandomInt(1, 2); schlurferCount = getRandomInt(2, 3); krebsCount = getRandomInt(0, 1); spuckerCount = getRandomInt(2, 3); mutantCount = 1;
+hauiCount = getRandomInt(2, 4); schlurferCount = getRandomInt(2, 3); krebsCount = getRandomInt(0, 1); spuckerCount = getRandomInt(2, 3); mutantCount = 1;
 } else if (diff === 'medium') {
 bMin = 14; bMax = 19; sMin = 6; sMax = 9; boMin = 3; boMax = 5; survMin = 9; survMax = 13;
 schreierinCount = 6; verrueckterCount = getRandomInt(1, 5); monsterCount = 2;
-hauiPairs = getRandomInt(2, 3); schlurferCount = getRandomInt(3, 5); krebsCount = 1; spuckerCount = getRandomInt(3, 5); mutantCount = getRandomInt(1, 2);
+hauiCount = getRandomInt(4, 6); schlurferCount = getRandomInt(3, 5); krebsCount = 1; spuckerCount = getRandomInt(3, 5); mutantCount = getRandomInt(1, 2);
 } else { // hard
 bMin = 20; bMax = 28; sMin = 8; sMax = 12; boMin = 5; boMax = 7; survMin = 5; survMax = 9;
 schreierinCount = 9; verrueckterCount = 7; monsterCount = 3;
-hauiPairs = getRandomInt(3, 4); schlurferCount = getRandomInt(5, 7); krebsCount = getRandomInt(1, 2); spuckerCount = getRandomInt(5, 7); mutantCount = getRandomInt(2, 3);
+hauiCount = getRandomInt(6, 8); schlurferCount = getRandomInt(5, 7); krebsCount = getRandomInt(1, 2); spuckerCount = getRandomInt(5, 7); mutantCount = getRandomInt(2, 3);
 }
 
 beisserCount = getRandomInt(bMin, bMax);
@@ -1318,20 +1374,11 @@ for (let i = 0; i < spuckerCount; i++) zombiesQueue.push({ name: 'Spucker', maxH
 if (document.getElementById('toggle-mutant').checked) {
 for (let i = 0; i < mutantCount; i++) zombiesQueue.push({ name: 'Mutant', maxHp: 4, currentHp: 4, skulls: 4, class: 'mutant', icon: 'Mutant.svg' });
 }
+if (document.getElementById('toggle-haui').checked) {
+for (let i = 0; i < hauiCount; i++) zombiesQueue.push({ name: 'Haui', maxHp: 0.5, currentHp: 0.5, skulls: 1, class: 'haui', icon: 'Haui.svg' });
+}
 
 zombiesQueue.sort(() => Math.random() - 0.5);
-
-// Haui erscheint immer im Doppelpack -> nach dem Mischen als zusammenhängendes Paar einfügen
-if (document.getElementById('toggle-haui').checked) {
-for (let i = 0; i < hauiPairs; i++) {
-const pair = [
-{ name: 'Haui', maxHp: 0.5, currentHp: 0.5, skulls: 1, class: 'haui', icon: 'Haui.svg' },
-{ name: 'Haui', maxHp: 0.5, currentHp: 0.5, skulls: 1, class: 'haui', icon: 'Haui.svg' }
-];
-const insertPos = getRandomInt(0, zombiesQueue.length);
-zombiesQueue.splice(insertPos, 0, ...pair);
-}
-}
 
 initialZombieTotal = zombiesQueue.length;
 document.getElementById('zombie-total').innerText = 'Start: ' + initialZombieTotal;
@@ -1449,6 +1496,8 @@ return Array.from(document.querySelectorAll('.survivor-card:not(.dead)'));
 }
 
 function updateSurvivorCount() {
+updateSurvivorListVisibility();
+
 const total = document.querySelectorAll('.survivor-card').length;
 const dead = document.querySelectorAll('.survivor-card.dead').length;
 const alive = total - dead;
@@ -1459,27 +1508,50 @@ triggerGameOver(false);
 }
 }
 
+// Im eingeklappten Zustand werden insgesamt maximal MAX_VISIBLE_SURVIVORS Karten gezeigt: zuerst
+// alle Spieler, die übrigen Plätze füllen die zuletzt aktiven, NOCH LEBENDEN Überlebenden. Stirbt
+// einer der sichtbaren Überlebenden, verschwindet seine Karte und ein anderer noch lebender
+// Überlebender rückt automatisch in das frei gewordene Fenster nach. Die "Alle anzeigen"-Ansicht
+// zeigt weiterhin die komplette Liste inkl. der Verstorbenen (ausgegraut).
 function updateSurvivorListVisibility() {
 const grid = document.getElementById('survivors-grid');
 if (!grid) return;
 const toggle = document.getElementById('survivor-list-toggle');
 const allCards = Array.from(grid.children);
+const playerCards = allCards.filter(c => c.classList.contains('player'));
 const npcCards = allCards.filter(c => !c.classList.contains('player'));
+const npcSlots = Math.max(0, MAX_VISIBLE_SURVIVORS - playerCards.length);
 
-if (survivorListExpanded || npcCards.length <= 5) {
+if (survivorListExpanded) {
 npcCards.forEach(c => c.classList.remove('list-hidden'));
-if (npcCards.length > 5) {
+const wouldHideIfCollapsed = Math.max(0, npcCards.length - npcSlots);
+if (wouldHideIfCollapsed > 0) {
 toggle.textContent = '▲ Einklappen';
 toggle.classList.remove('hidden');
 } else {
 toggle.classList.add('hidden');
 }
+return;
+}
+
+const aliveNpcs = npcCards.filter(c => !c.classList.contains('dead'));
+const visibleNpcs = npcSlots > 0 ? aliveNpcs.slice(-npcSlots) : [];
+const visibleSet = new Set(visibleNpcs);
+
+npcCards.forEach(c => {
+if (visibleSet.has(c)) {
+c.classList.remove('list-hidden');
 } else {
-const hiddenCount = npcCards.length - 5;
-npcCards.slice(0, hiddenCount).forEach(c => c.classList.add('list-hidden'));
-npcCards.slice(hiddenCount).forEach(c => c.classList.remove('list-hidden'));
+c.classList.add('list-hidden');
+}
+});
+
+const hiddenCount = npcCards.length - visibleNpcs.length;
+if (hiddenCount > 0) {
 toggle.textContent = `+${hiddenCount} weitere anzeigen`;
 toggle.classList.remove('hidden');
+} else {
+toggle.classList.add('hidden');
 }
 }
 
@@ -1533,7 +1605,6 @@ for (let i = 0; i < count; i++) {
 const icon = GENERIC_SURVIVOR_ICONS[Math.floor(Math.random() * GENERIC_SURVIVOR_ICONS.length)];
 grid.appendChild(createSurvivorCard(icon, 'Verstärkung', false));
 }
-updateSurvivorListVisibility();
 updateSurvivorCount();
 }
 
@@ -1633,7 +1704,7 @@ killSurvivors(killCount);
 } else if (currentZombie.class === 'monster') {
 killSurvivors(2);
 } else if (currentZombie.class === 'haui') {
-killSurvivors(1);
+damageOneSurvivor(0.5);
 } else if (currentZombie.class === 'schlurfer') {
 damageOneSurvivor(0.5);
 } else if (currentZombie.class === 'krebs') {
@@ -1660,6 +1731,7 @@ document.getElementById('distance-top-bar').classList.add('hidden');
 skullsContainer.innerHTML = '🎉';
 document.getElementById('health-bar').style.width = '0%';
 document.getElementById('health-text').innerText = 'ENDE';
+document.getElementById('zombie-effect-text').innerText = '';
 document.getElementById('zombie-count').innerText = 0;
 hbContainer.classList.remove('wounded');
 
@@ -1770,6 +1842,7 @@ hbContainer.classList.remove('wounded');
 const pct = (currentZombie.currentHp / currentZombie.maxHp) * 100;
 document.getElementById('health-bar').style.width = `${Math.max(0, pct)}%`;
 document.getElementById('health-text').innerText = `${currentZombie.currentHp.toFixed(1).replace('.0','')} / ${currentZombie.maxHp} Leben`;
+document.getElementById('zombie-effect-text').innerText = ZOMBIE_EFFECTS[currentZombie.class] || '';
 
 if (distanceEnabled) updateDistanceDisplay();
 }
@@ -1793,7 +1866,9 @@ showEventBanner(`🔧 Engineer rüstet ${equipped} Überlebende mit Schutzwesten
 function applySingleShot(amount) {
 if (!currentZombie || isGameOver || isPaused) return false;
 
-const applied = (currentZombie.class === 'mutant') ? amount / 2 : amount;
+// Mutant: Kopftreffer treffen die einzige Schwachstelle (Kopf) und wirken voll, alle anderen
+// Trefferarten (Verwunden/Treffer) werden weiterhin halbiert.
+const applied = (currentZombie.class === 'mutant' && amount !== 3.0) ? amount / 2 : amount;
 currentZombie.currentHp -= applied;
 
 if (amount === 3.0) {
@@ -1860,6 +1935,34 @@ setTimeout(nextZombie, 300);
 function updateMedikit(change) {
 medikits = Math.max(0, medikits + change);
 document.getElementById('medikit-count').innerText = medikits;
+}
+
+// Der "-" Button bei den Medikits verbraucht ein Medikit, um damit EINEN gefallenen Überlebenden
+// wiederzubeleben (zuerst Spieler, dann übrige) - so wie es beim Kopftreffer-Bonus gedacht ist.
+// Gibt es niemanden zum Wiederbeleben, wird kein Medikit verbraucht.
+function useMedikit() {
+if (medikits <= 0) {
+showEventBanner('💉 Keine Medikits vorhanden!');
+return;
+}
+
+const cards = Array.from(document.querySelectorAll('.survivor-card'));
+const deadPlayers = cards.filter(c => c.classList.contains('player') && c.classList.contains('dead'));
+const deadOthers = cards.filter(c => !c.classList.contains('player') && c.classList.contains('dead'));
+const target = deadPlayers[0] || deadOthers[0];
+
+if (!target) {
+showEventBanner('💉 Alle Überlebenden sind wohlauf – kein Medikit nötig!');
+return;
+}
+
+target.dataset.life = target.dataset.maxLife;
+updateSurvivorVisual(target);
+updateMedikit(-1);
+updateSurvivorCount();
+
+const nm = target.querySelector('.survivor-name').innerText;
+showEventBanner(`💉 Medikit eingesetzt: ${nm} wiederbelebt!`);
 }
 
 function addVest(amount) {
