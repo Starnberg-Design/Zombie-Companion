@@ -1,1274 +1,1603 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zombie Survival Companion v7.2</title>
-    <style>
-        :root {
-            --bg-color: #1a1a1a;
-            --card-bg: #2d2d2d;
-            --accent-color: #ff4757;
-            --text-color: #f1f1f1;
-            --success-color: #2ecc71;
-            --highlight-color: #f1c40f;
-            --headshot-color: #d4ac0d;
-        }
-
-        * {
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        html, body {
-            width: 100%;
-            height: 100%;
-            height: 100dvh;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        h1, h2, h3 { 
-            text-align: center; 
-            margin: 0 0 6px 0; 
-            text-transform: uppercase; 
-            letter-spacing: 1px;
-            font-size: 15px;
-        }
-
-        .app-container {
-            width: 100%;
-            height: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            background: var(--card-bg);
-            display: flex;
-            flex-direction: column;
-            padding: 10px;
-            position: relative;
-        }
-
-        #setup-screen {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            padding-bottom: 10px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        label {
-            font-size: 13px;
-            font-weight: bold;
-            color: #aaa;
-        }
-
-        select, input[type="text"], input[type="number"] {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #444;
-            background: #333;
-            color: #fff;
-            font-size: 15px;
-        }
-
-        .custom-settings-box, .zombie-toggle-box {
-            background: #383838;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #444;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .custom-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-
-        .zombie-toggle-item {
-            background: #333;
-            border: 1px solid #444;
-            border-radius: 8px;
-            padding: 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .checkbox-label {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            color: #fff;
-        }
-
-        .checkbox-label input {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--accent-color);
-            cursor: pointer;
-        }
-
-        .zombie-desc {
-            font-size: 11px;
-            color: #aaa;
-            line-height: 1.3;
-            padding-left: 28px;
-        }
-
-        .player-setup-card {
-            background: #383838;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #444;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .char-select-btn {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #444;
-            border: 2px solid var(--highlight-color);
-            padding: 6px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            color: #fff;
-        }
-
-        .char-select-preview {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 14px;
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: background 0.2s;
-        }
-
-        .btn:active { transform: scale(0.98); background: #e04050; }
-
-        #game-screen {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            gap: 8px;
-            min-height: 0;
-        }
-
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #444;
-            padding-bottom: 4px;
-        }
-
-        .top-bar-buttons {
-            display: flex;
-            gap: 6px;
-        }
-
-        .btn-icon-menu {
-            background: #444;
-            border: 1px solid #555;
-            color: #fff;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .hud {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            background: #222;
-            padding: 8px 10px;
-            border-radius: 10px;
-            border: 1px solid #444;
-        }
-
-        .hud-stat {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .hud-label {
-            font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-bottom: 2px;
-        }
-
-        .hud-value {
-            font-size: 32px;
-            font-weight: 900;
-            line-height: 1;
-        }
-
-        .medikit-controls {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 2px;
-        }
-
-        .btn-mini {
-            width: 30px;
-            height: 30px;
-            background: #444;
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 18px;
-            cursor: pointer;
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-        }
-
-        .survivors-container {
-            background: #222;
-            padding: 6px 8px;
-            border-radius: 10px;
-            border: 1px solid #444;
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-            max-height: 140px;
-            flex: 1.3;
-        }
-
-        .survivors-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(54px, 1fr));
-            gap: 6px;
-            overflow-y: auto;
-            padding-right: 2px;
-        }
-
-        .survivor-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: opacity 0.2s, transform 0.1s;
-        }
-
-        .survivor-card.dead {
-            opacity: 0.15;
-            filter: grayscale(100%);
-        }
-
-        .survivor-avatar {
-            font-size: 22px;
-            background: #444;
-            width: 42px;
-            height: 42px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            margin-bottom: 3px;
-            border: 2px solid transparent;
-        }
-
-        .survivor-card.player .survivor-avatar {
-            border-color: var(--highlight-color);
-            box-shadow: 0 0 8px rgba(241, 196, 15, 0.6);
-        }
-
-        .survivor-name {
-            font-weight: bold;
-            color: #fff;
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-            white-space: nowrap; 
-            width: 100%;
-        }
-
-        .zombie-display {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: #222;
-            border-radius: 12px;
-            border: 1px solid #444;
-            flex: 1.9;
-            justify-content: space-between;
-            min-height: 0;
-            position: relative;
-            overflow: hidden;
-            padding: 8px 10px 10px 10px;
-        }
-
-        .distance-top-bar {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 40px;
-            background: rgba(0, 0, 0, 0.5);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 3;
-        }
-
-        .distance-progress-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            width: 100%;
-            background: var(--success-color);
-            opacity: 0.65;
-            transition: width 0.2s ease-out, background-color 0.3s ease;
-            z-index: 1;
-        }
-
-        .distance-hud-inline {
-            position: relative;
-            z-index: 2;
-            font-size: 18px;
-            font-weight: 900;
-            color: #fff;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.9);
-            letter-spacing: 1px;
-        }
-
-        .zombie-content-wrapper {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-            margin-top: 28px;
-        }
-
-        .zombie-box {
-            width: 100%;
-            max-width: 260px;
-            height: 90px;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            transition: transform 0.1s;
-            border: 2px solid rgba(255,255,255,0.2);
-        }
-
-        .zombie-box.beisser { background-color: #553311; }
-        .zombie-box.sprinter { background-color: #551111; }
-        .zombie-box.bomber { background-color: #111; border: 3px solid #555; }
-        .zombie-box.schreierin { background-color: #8e44ad; }
-        .zombie-box.verrueckter { background-color: #d35400; }
-        .zombie-box.monster { background-color: #2c3e50; border: 3px solid #e74c3c; }
-
-        .zombie-img-icon { width: 44px; height: 44px; object-fit: contain; }
-        
-        .skulls {
-            position: absolute;
-            top: 4px;
-            right: 8px;
-            font-size: 11px;
-            display: flex;
-            gap: 2px;
-        }
-
-        .zombie-title {
-            margin-top: 2px;
-            font-size: 14px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-            color: #fff;
-        }
-
-        .health-bar-container {
-            width: 100%;
-            max-width: 260px;
-            background: #444;
-            height: 12px;
-            border-radius: 6px;
-            margin-top: 5px;
-            overflow: hidden;
-            border: 1px solid #555;
-        }
-
-        .health-bar-fill {
-            height: 100%;
-            background: var(--success-color);
-            width: 100%;
-            transition: width 0.2s ease, background-color 0.2s;
-        }
-
-        .health-bar-container.wounded .health-bar-fill {
-            background: #e67e22;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 6px;
-            width: 100%;
-        }
-
-        .btn-action {
-            flex: 1;
-            padding: 12px 4px;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-weight: 900;
-            font-size: 13px;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .btn-miss { background: #7f8c8d; }
-        .btn-wound { background: #e67e22; }
-        .btn-hit { background: #c0392b; }
-        .btn-headshot { background: var(--headshot-color); color: #111; }
-        .btn-action:active { transform: scale(0.96); }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.85);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            padding: 15px;
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-            border-radius: 12px;
-            width: 100%;
-            max-width: 400px;
-            max-height: 85vh;
-            display: flex;
-            flex-direction: column;
-            border: 1px solid #555;
-        }
-
-        .modal-header {
-            padding: 12px;
-            border-bottom: 1px solid #444;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-body {
-            padding: 15px;
-            text-align: center;
-            font-size: 16px;
-            overflow-y: auto;
-        }
-
-        .modal-list {
-            padding: 10px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .modal-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px;
-            background: #383838;
-            border-radius: 8px;
-            cursor: pointer;
-            border: 2px solid transparent;
-            color: #fff;
-        }
-
-        .modal-item.selected {
-            border-color: var(--highlight-color);
-            background: #444;
-        }
-
-        .modal-item span.icon { font-size: 24px; }
-
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            padding: 12px;
-            border-top: 1px solid #444;
-        }
-
-        .btn-modal {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 15px;
-            cursor: pointer;
-        }
-
-        .btn-confirm { background: var(--accent-color); color: white; }
-        .btn-cancel { background: #555; color: white; }
-
-        .hidden { display: none !important; }
-
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: #222; }
-        ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Zombie Survival Companion v7.2</title>
+<style>
+:root {
+--bg-color: #1a1a1a;
+--card-bg: #2d2d2d;
+--accent-color: #ff4757;
+--text-color: #f1f1f1;
+--success-color: #2ecc71;
+--highlight-color: #f1c40f;
+--headshot-color: #d4ac0d;
+}
+
+* {
+box-sizing: border-box;
+user-select: none;
+-webkit-user-select: none;
+}
+
+html, body {
+width: 100%;
+height: 100%;
+height: 100dvh;
+margin: 0;
+padding: 0;
+overflow: hidden;
+background-color: var(--bg-color);
+color: var(--text-color);
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+h1, h2, h3 {
+text-align: center;
+margin: 0 0 6px 0;
+text-transform: uppercase;
+letter-spacing: 1px;
+font-size: 15px;
+}
+
+.app-container {
+width: 100%;
+height: 100%;
+max-width: 600px;
+margin: 0 auto;
+background: var(--card-bg);
+display: flex;
+flex-direction: column;
+padding: 10px;
+position: relative;
+}
+
+#setup-screen {
+flex: 1;
+overflow-y: auto;
+display: flex;
+flex-direction: column;
+gap: 12px;
+padding-bottom: 10px;
+}
+
+.form-group {
+display: flex;
+flex-direction: column;
+gap: 4px;
+}
+
+label {
+font-size: 13px;
+font-weight: bold;
+color: #aaa;
+}
+
+select, input[type="text"], input[type="number"] {
+width: 100%;
+padding: 10px;
+border-radius: 8px;
+border: 1px solid #444;
+background: #333;
+color: #fff;
+font-size: 15px;
+}
+
+.custom-settings-box, .zombie-toggle-box {
+background: #383838;
+padding: 10px;
+border-radius: 8px;
+border: 1px solid #444;
+display: flex;
+flex-direction: column;
+gap: 8px;
+}
+
+.custom-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 8px;
+}
+
+.zombie-toggle-item {
+background: #333;
+border: 1px solid #444;
+border-radius: 8px;
+padding: 8px;
+display: flex;
+flex-direction: column;
+gap: 4px;
+}
+
+.zombie-section-divider {
+border-top: 1px dashed #555;
+margin: 6px 0 2px 0;
+padding-top: 8px;
+font-size: 12px;
+font-weight: bold;
+color: var(--highlight-color);
+text-transform: uppercase;
+letter-spacing: 0.5px;
+}
+
+.checkbox-label {
+display: flex;
+align-items: center;
+gap: 8px;
+cursor: pointer;
+font-size: 14px;
+font-weight: bold;
+color: #fff;
+}
+
+.checkbox-label input {
+width: 18px;
+height: 18px;
+accent-color: var(--accent-color);
+cursor: pointer;
+}
+
+.toggle-icon {
+width: 24px;
+height: 24px;
+object-fit: contain;
+flex-shrink: 0;
+}
+
+.zombie-desc {
+font-size: 11px;
+color: #aaa;
+line-height: 1.3;
+padding-left: 28px;
+}
+
+.player-setup-card {
+background: #383838;
+padding: 10px;
+border-radius: 8px;
+border: 1px solid #444;
+display: flex;
+flex-direction: column;
+gap: 8px;
+}
+
+.char-select-btn {
+display: flex;
+align-items: center;
+justify-content: space-between;
+background: #444;
+border: 2px solid var(--highlight-color);
+padding: 6px 12px;
+border-radius: 8px;
+cursor: pointer;
+color: #fff;
+}
+
+.char-select-preview {
+display: flex;
+align-items: center;
+gap: 8px;
+font-weight: bold;
+font-size: 16px;
+}
+
+.btn {
+width: 100%;
+padding: 14px;
+background: var(--accent-color);
+color: white;
+border: none;
+border-radius: 10px;
+font-size: 18px;
+font-weight: bold;
+cursor: pointer;
+text-transform: uppercase;
+letter-spacing: 1px;
+transition: background 0.2s;
+}
+
+.btn:active { transform: scale(0.98); background: #e04050; }
+
+#game-screen {
+flex: 1;
+display: flex;
+flex-direction: column;
+justify-content: space-between;
+gap: 6px;
+min-height: 0;
+}
+
+.top-bar {
+display: flex;
+justify-content: space-between;
+align-items: center;
+border-bottom: 1px solid #444;
+padding-bottom: 4px;
+}
+
+.top-bar-buttons {
+display: flex;
+gap: 6px;
+}
+
+.btn-icon-menu {
+background: #444;
+border: 1px solid #555;
+color: #fff;
+padding: 6px 12px;
+border-radius: 6px;
+font-size: 13px;
+font-weight: bold;
+cursor: pointer;
+}
+
+.hud {
+display: flex;
+justify-content: space-around;
+align-items: center;
+background: #222;
+padding: 8px 10px;
+border-radius: 10px;
+border: 1px solid #444;
+}
+
+.hud-stat {
+display: flex;
+flex-direction: column;
+align-items: center;
+position: relative;
+}
+
+.hud-total {
+position: absolute;
+top: -10px;
+right: -6px;
+font-size: 10px;
+font-weight: normal;
+color: #999;
+background: #111;
+border: 1px solid #444;
+padding: 1px 5px;
+border-radius: 6px;
+white-space: nowrap;
+}
+
+.hud-label {
+font-size: 12px;
+font-weight: bold;
+text-transform: uppercase;
+margin-bottom: 2px;
+}
+
+.hud-value {
+font-size: 42px;
+font-weight: 900;
+line-height: 1;
+}
+
+.resource-bar {
+display: flex;
+justify-content: space-around;
+align-items: center;
+background: #222;
+padding: 6px 10px;
+border-radius: 10px;
+border: 1px solid #444;
+}
+
+.resource-item {
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 2px;
+}
+
+.resource-label {
+font-size: 11px;
+font-weight: bold;
+text-transform: uppercase;
+color: #aaa;
+}
+
+.hud-value-sm {
+font-size: 20px;
+font-weight: 900;
+min-width: 22px;
+text-align: center;
+}
+
+.medikit-controls {
+display: flex;
+align-items: center;
+gap: 8px;
+margin-top: 2px;
+}
+
+.btn-mini {
+width: 36px;
+height: 36px;
+background: #444;
+color: #fff;
+border: none;
+border-radius: 6px;
+font-weight: bold;
+font-size: 20px;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.survivors-container {
+background: #222;
+padding: 6px 8px;
+border-radius: 10px;
+border: 1px solid #444;
+display: flex;
+flex-direction: column;
+min-height: 0;
+max-height: 130px;
+flex: 1.1;
+}
+
+.survivors-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(54px, 1fr));
+gap: 6px;
+overflow-y: auto;
+padding-right: 2px;
+}
+
+.survivor-card {
+display: flex;
+flex-direction: column;
+align-items: center;
+font-size: 10px;
+text-align: center;
+cursor: pointer;
+transition: opacity 0.2s, transform 0.1s;
+}
+
+.survivor-card.dead {
+opacity: 0.15;
+filter: grayscale(100%);
+}
+
+.survivor-avatar {
+font-size: 22px;
+background: #444;
+width: 42px;
+height: 42px;
+display: flex;
+align-items: center;
+justify-content: center;
+border-radius: 50%;
+margin-bottom: 3px;
+border: 2px solid transparent;
+position: relative;
+}
+
+.survivor-card.player .survivor-avatar {
+border-color: var(--highlight-color);
+box-shadow: 0 0 8px rgba(241, 196, 15, 0.6);
+}
+
+.survivor-card.wounded .survivor-avatar::before {
+content: '';
+position: absolute;
+top: -2px;
+left: -2px;
+width: 11px;
+height: 11px;
+background: #e67e22;
+border-radius: 50%;
+border: 1px solid #222;
+}
+
+.survivor-card.vested .survivor-avatar::after {
+content: '🦺';
+position: absolute;
+bottom: -6px;
+right: -6px;
+font-size: 13px;
+line-height: 1;
+}
+
+.survivor-name {
+font-weight: bold;
+color: #fff;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+width: 100%;
+}
+
+.zombie-display {
+display: flex;
+flex-direction: column;
+align-items: center;
+background: #222;
+border-radius: 12px;
+border: 1px solid #444;
+flex: 1.9;
+justify-content: space-between;
+min-height: 0;
+position: relative;
+overflow: hidden;
+padding: 8px 10px 10px 10px;
+}
+
+.distance-top-bar {
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 40px;
+background: rgba(0, 0, 0, 0.5);
+border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+display: flex;
+align-items: center;
+justify-content: center;
+z-index: 3;
+}
+
+.distance-progress-bg {
+position: absolute;
+top: 0;
+left: 0;
+height: 100%;
+width: 100%;
+background: var(--success-color);
+opacity: 0.65;
+transition: width 0.2s ease-out, background-color 0.3s ease;
+z-index: 1;
+}
+
+.distance-hud-inline {
+position: relative;
+z-index: 2;
+font-size: 18px;
+font-weight: 900;
+color: #fff;
+text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+letter-spacing: 1px;
+}
+
+.zombie-content-wrapper {
+width: 100%;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+flex: 1;
+margin-top: 28px;
+}
+
+.zombie-box {
+width: 100%;
+max-width: 260px;
+height: 96px;
+border-radius: 12px;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+position: relative;
+box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+transition: transform 0.1s;
+border: 2px solid rgba(255,255,255,0.2);
+}
+
+.zombie-box.beisser { background-color: #6C232B; }
+.zombie-box.sprinter { background-color: #73341C; }
+.zombie-box.bomber { background-color: #4F321E; border: 3px solid #555; }
+.zombie-box.schreierin { background-color: #194D76; }
+.zombie-box.verrueckter { background-color: #196C76; }
+.zombie-box.monster { background-color: #68272E; border: 3px solid #e74c3c; }
+.zombie-box.haui { background-color: #193776; }
+.zombie-box.schlurfer { background-color: #4F321E; }
+.zombie-box.krebs { background-color: #1C6973; border: 3px solid #D15241; }
+.zombie-box.spucker { background-color: #741B20; }
+.zombie-box.mutant { background-color: #194476; border: 3px solid #F6A74B; }
+
+.zombie-img-icon { width: 56px; height: 56px; object-fit: contain; }
+
+.skulls {
+position: absolute;
+top: 4px;
+right: 8px;
+font-size: 12px;
+display: flex;
+gap: 2px;
+}
+
+.zombie-title {
+margin-top: 3px;
+font-size: 20px;
+font-weight: 900;
+text-transform: uppercase;
+letter-spacing: 1px;
+text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+color: #fff;
+}
+
+.health-bar-container {
+width: 100%;
+max-width: 260px;
+background: #444;
+height: 15px;
+border-radius: 6px;
+margin-top: 5px;
+overflow: hidden;
+border: 1px solid #555;
+}
+
+.health-bar-fill {
+height: 100%;
+background: var(--success-color);
+width: 100%;
+transition: width 0.2s ease, background-color 0.2s;
+}
+
+.health-bar-container.wounded .health-bar-fill {
+background: #e67e22;
+}
+
+.action-buttons {
+display: flex;
+gap: 6px;
+width: 100%;
+}
+
+.btn-action {
+flex: 1;
+padding: 15px 4px;
+color: white;
+border: none;
+border-radius: 10px;
+font-weight: 900;
+font-size: 15px;
+cursor: pointer;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+}
+
+.btn-miss { background: #7f8c8d; }
+.btn-wound { background: #e67e22; }
+.btn-hit { background: #c0392b; }
+.btn-headshot { background: var(--headshot-color); color: #111; }
+.btn-action:active { transform: scale(0.96); }
+
+.event-banner {
+position: fixed;
+top: 14px;
+left: 50%;
+transform: translateX(-50%) translateY(-24px);
+background: rgba(10, 10, 10, 0.95);
+color: #fff;
+padding: 10px 18px;
+border-radius: 10px;
+font-size: 14px;
+font-weight: bold;
+text-align: center;
+z-index: 2000;
+opacity: 0;
+transition: opacity 0.25s, transform 0.25s;
+pointer-events: none;
+max-width: 90%;
+border: 1px solid var(--highlight-color);
+box-shadow: 0 4px 14px rgba(0,0,0,0.6);
+}
+
+.event-banner.show {
+opacity: 1;
+transform: translateX(-50%) translateY(0);
+}
+
+.modal-overlay {
+position: fixed;
+top: 0; left: 0; right: 0; bottom: 0;
+background: rgba(0,0,0,0.85);
+display: flex;
+align-items: center;
+justify-content: center;
+z-index: 1000;
+padding: 15px;
+}
+
+.modal-content {
+background: var(--card-bg);
+border-radius: 12px;
+width: 100%;
+max-width: 400px;
+max-height: 85vh;
+display: flex;
+flex-direction: column;
+border: 1px solid #555;
+}
+
+.modal-header {
+padding: 12px;
+border-bottom: 1px solid #444;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.modal-body {
+padding: 15px;
+text-align: center;
+font-size: 16px;
+overflow-y: auto;
+}
+
+.modal-list {
+padding: 10px;
+overflow-y: auto;
+display: flex;
+flex-direction: column;
+gap: 8px;
+}
+
+.modal-item {
+display: flex;
+align-items: center;
+gap: 12px;
+padding: 10px;
+background: #383838;
+border-radius: 8px;
+cursor: pointer;
+border: 2px solid transparent;
+color: #fff;
+}
+
+.modal-item.selected {
+border-color: var(--highlight-color);
+background: #444;
+}
+
+.modal-item span.icon { font-size: 24px; }
+
+.modal-actions {
+display: flex;
+gap: 10px;
+padding: 12px;
+border-top: 1px solid #444;
+}
+
+.btn-modal {
+flex: 1;
+padding: 12px;
+border: none;
+border-radius: 8px;
+font-weight: bold;
+font-size: 15px;
+cursor: pointer;
+}
+
+.btn-confirm { background: var(--accent-color); color: white; }
+.btn-cancel { background: #555; color: white; }
+
+.hidden { display: none !important; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #222; }
+::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+</style>
 </head>
 <body>
 
 <div class="app-container">
-    <!-- SETUP SCREEN -->
-    <div id="setup-screen">
-        <h2>Spiel Setup</h2>
-        
-        <div class="form-group">
-            <label for="player-count">Anzahl der Spieler:</label>
-            <select id="player-count" onchange="generatePlayerSetup()">
-                <option value="1">1 Spieler</option>
-                <option value="2">2 Spieler</option>
-                <option value="3">3 Spieler</option>
-                <option value="4">4 Spieler</option>
-            </select>
-        </div>
+<!-- SETUP SCREEN -->
+<div id="setup-screen">
+<h2>Spiel Setup</h2>
 
-        <div id="players-container"></div>
-
-        <div class="form-group">
-            <label for="difficulty">Spielmodus / Schwierigkeit:</label>
-            <select id="difficulty" onchange="toggleCustomSettings()">
-                <option value="easy">Einfach (+5 Überlebende)</option>
-                <option value="medium" selected>Mittel (+10 Überlebende)</option>
-                <option value="hard">Schwer (+15 Überlebende)</option>
-                <option value="custom">⚙️ Benutzerdefiniert</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="zombie-speed">Zombiegeschwindigkeit:</label>
-            <select id="zombie-speed">
-                <option value="slow">Langsam</option>
-                <option value="medium" selected>Mittel</option>
-                <option value="fast">Schnell</option>
-            </select>
-        </div>
-
-        <!-- ZOMBIE AKTIVIERUNG / DEAKTIVIERUNG MIT KURZBESCHREIBUNGEN -->
-        <div class="zombie-toggle-box">
-            <label style="color: var(--highlight-color); margin-bottom: 2px;">Aktive Zombietypen & Werte:</label>
-            <div style="display: flex; flex-direction: column; gap: 6px;">
-                
-                <div class="zombie-toggle-item">
-                    <label class="checkbox-label"><input type="checkbox" id="toggle-beisser" checked> Beißer (Standard)</label>
-                    <div class="zombie-desc">1 Leben (Standard). Zieht bei „Verfehlt“ 1 Überlebenden ab.</div>
-                </div>
-
-                <div class="zombie-toggle-item">
-                    <label class="checkbox-label"><input type="checkbox" id="toggle-sprinter" checked> Sprinter (Schnell)</label>
-                    <div class="zombie-desc">1 Leben. Kürzere Distanz-Zeit. Zieht bei „Verfehlt“ 2 Überlebende ab.</div>
-                </div>
-
-                <div class="zombie-toggle-item">
-                    <label class="checkbox-label"><input type="checkbox" id="toggle-bomber" checked> Bomber (Gefahr)</label>
-                    <div class="zombie-desc">3 Leben. Sehr lange Distanz. Zieht bei „Verfehlt“ direkt 3 Überlebende ab.</div>
-                </div>
-
-                <div class="zombie-toggle-item">
-                    <label class="checkbox-label"><input type="checkbox" id="toggle-schreierin" checked> Schreierin (Horde)</label>
-                    <div class="zombie-desc">2 Leben. Zieht bei „Verfehlt“ 1 Überlebenden ab und spawnt neue Zufalls-Zombies im Team (3–6 Stk.).</div>
-                </div>
-
-                <div class="zombie-toggle-item">
-                    <label class="checkbox-label"><input type="checkbox" id="toggle-verrueckter" checked> Verrückter (Chaot)</label>
-                    <div class="zombie-desc">0.5 Leben (halber HP). Zieht bei „Verfehlt“ zufällig 1 bis 3 Überlebende ab.</div>
-                </div>
-
-                <div class="zombie-toggle-item">
-                    <label class="checkbox-label"><input type="checkbox" id="toggle-monster" checked> Monster (Boss)</label>
-                    <div class="zombie-desc">6 Leben. Härtester Brocken. Zieht bei „Verfehlt“ direkt 2 Überlebende auf einmal ab.</div>
-                </div>
-
-            </div>
-        </div>
-
-        <div id="custom-settings-box" class="custom-settings-box hidden">
-            <label style="color: var(--highlight-color); margin-bottom: 2px;">Benutzerdefinierte Anzahl:</label>
-            <div class="custom-grid">
-                <div class="form-group"><label>Beißer:</label><input type="number" id="custom-beisser" value="10" min="0" max="50"></div>
-                <div class="form-group"><label>Sprinter:</label><input type="number" id="custom-sprinter" value="5" min="0" max="30"></div>
-                <div class="form-group"><label>Bomber:</label><input type="number" id="custom-bomber" value="2" min="0" max="20"></div>
-                <div class="form-group"><label>Schreierin:</label><input type="number" id="custom-schreierin" value="3" min="0" max="20"></div>
-                <div class="form-group"><label>Verrückter:</label><input type="number" id="custom-verrueckter" value="3" min="0" max="20"></div>
-                <div class="form-group"><label>Monster:</label><input type="number" id="custom-monster" value="1" min="0" max="10"></div>
-                <div class="form-group" style="grid-column: span 2;"><label>Überlebende (NPCs):</label><input type="number" id="custom-survivors" value="8" min="0" max="50"></div>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="checkbox-label" style="font-weight: normal;">
-                <input type="checkbox" id="enable-distance" checked style="width: 18px; height: 18px;">
-                <span>Aktive Zombie-Distanz & Annäherung aktivieren</span>
-            </label>
-        </div>
-
-        <button class="btn" style="margin-top: auto;" onclick="startGame()">Spiel Starten</button>
-    </div>
-
-    <!-- GAME SCREEN -->
-    <div id="game-screen" class="hidden">
-        <div class="top-bar">
-            <span style="font-weight: bold; font-size: 13px; color: #aaa;">ZOMBIE COMPANION</span>
-            <div class="top-bar-buttons">
-                <button class="btn-icon-menu" id="btn-pause" onclick="togglePause()">⏸️ Pause</button>
-                <button class="btn-icon-menu" onclick="promptQuit()">⚙️ Menü</button>
-            </div>
-        </div>
-
-        <div class="hud">
-            <div class="hud-stat" style="color: #e74c3c;">
-                <span class="hud-label">🧟 Zombies</span>
-                <span class="hud-value" id="zombie-count">0</span>
-            </div>
-            <div class="hud-stat" style="color: #3498db;">
-                <span class="hud-label">🧑 Überlebende</span>
-                <span class="hud-value" id="survivor-count">0</span>
-            </div>
-            <div class="hud-stat" style="color: #2ecc71;">
-                <span class="hud-label">💉 Medikits</span>
-                <div class="medikit-controls">
-                    <button class="btn-mini" onclick="updateMedikit(-1)">-</button>
-                    <span class="hud-value" id="medikit-count">0</span>
-                    <button class="btn-mini" onclick="updateMedikit(1)">+</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="survivors-container">
-            <h3>Überlebende</h3>
-            <div class="survivors-grid" id="survivors-grid"></div>
-        </div>
-
-        <div class="zombie-display">
-            <div id="distance-top-bar" class="distance-top-bar">
-                <div id="distance-bar-bg" class="distance-progress-bg"></div>
-                <div id="distance-container-inline" class="distance-hud-inline">📍 <span id="distance-text">50m</span></div>
-            </div>
-
-            <div class="zombie-content-wrapper">
-                <div id="zombie-box" class="zombie-box">
-                    <div id="skulls-container" class="skulls"></div>
-                    <img id="zombie-img" class="zombie-img-icon" src="" alt="Zombie">
-                    <strong id="zombie-name" class="zombie-title">-</strong>
-                </div>
-                
-                <div id="hb-container" class="health-bar-container">
-                    <div id="health-bar" class="health-bar-fill"></div>
-                </div>
-                <span id="health-text" style="font-size: 11px; margin-top: 3px; font-weight: bold;">0 / 0 Leben</span>
-            </div>
-        </div>
-
-        <div class="action-buttons">
-            <button class="btn-action btn-miss" onclick="handleMiss()">Verfehlt</button>
-            <button class="btn-action btn-wound" onclick="dealDamage(0.5)">Verwunden<br><span style="font-size:10px; font-weight:normal;">(-0.5)</span></button>
-            <button class="btn-action btn-hit" onclick="dealDamage(1.0)">Treffer<br><span style="font-size:10px; font-weight:normal;">(-1.0)</span></button>
-            <button class="btn-action btn-headshot" onclick="dealDamage(3.0)">Kopf-<br>treffer<br><span style="font-size:10px; font-weight:normal;">(-3.0)</span></button>
-        </div>
-    </div>
+<div class="form-group">
+<label for="player-count">Anzahl der Spieler:</label>
+<select id="player-count" onchange="generatePlayerSetup()">
+<option value="1">1 Spieler</option>
+<option value="2">2 Spieler</option>
+<option value="3">3 Spieler</option>
+<option value="4">4 Spieler</option>
+</select>
 </div>
+
+<div id="players-container"></div>
+
+<div class="form-group">
+<label for="difficulty">Spielmodus / Schwierigkeit:</label>
+<select id="difficulty" onchange="toggleCustomSettings()">
+<option value="easy">Einfach (+5 Überlebende)</option>
+<option value="medium" selected>Mittel (+10 Überlebende)</option>
+<option value="hard">Schwer (+15 Überlebende)</option>
+<option value="custom">⚙️ Benutzerdefiniert</option>
+</select>
+</div>
+
+<div class="form-group">
+<label for="zombie-speed">Zombiegeschwindigkeit:</label>
+<select id="zombie-speed">
+<option value="slow">Langsam</option>
+<option value="medium" selected>Mittel</option>
+<option value="fast">Schnell</option>
+</select>
+</div>
+
+<!-- ZOMBIE AKTIVIERUNG / DEAKTIVIERUNG MIT KURZBESCHREIBUNGEN -->
+<div class="zombie-toggle-box">
+<label style="color: var(--highlight-color); margin-bottom: 2px;">Aktive Zombietypen & Werte:</label>
+<div style="display: flex; flex-direction: column; gap: 6px;">
+
+<div class="zombie-toggle-item">
+<label class="checkbox-label"><input type="checkbox" id="toggle-beisser" checked><img src="Beißer.svg" class="toggle-icon" alt="">Beißer (Standard)</label>
+<div class="zombie-desc">1 Leben (Standard). Zieht bei „Verfehlt" 1 Überlebenden ab.</div>
+</div>
+
+<div class="zombie-toggle-item">
+<label class="checkbox-label"><input type="checkbox" id="toggle-sprinter" checked><img src="Sprinter.svg" class="toggle-icon" alt="">Sprinter (Schnell)</label>
+<div class="zombie-desc">1 Leben. Kürzere Distanz-Zeit. Zieht bei „Verfehlt" 2 Überlebende ab.</div>
+</div>
+
+<div class="zombie-toggle-item">
+<label class="checkbox-label"><input type="checkbox" id="toggle-bomber" checked><img src="Bomber.svg" class="toggle-icon" alt="">Bomber (Gefahr)</label>
+<div class="zombie-desc">3 Leben. Sehr lange Distanz. Zieht bei „Verfehlt" direkt 3 Überlebende ab.</div>
+</div>
+
+<div class="zombie-toggle-item">
+<label class="checkbox-label"><input type="checkbox" id="toggle-schreierin" checked><img src="Schreierin.svg" class="toggle-icon" alt="">Schreierin (Horde)</label>
+<div class="zombie-desc">2 Leben. Zieht bei „Verfehlt" 1 Überlebenden ab und spawnt neue Zufalls-Zombies im Team (3–6 Stk.).</div>
+</div>
+
+<div class="zombie-toggle-item">
+<label class="checkbox-label"><input type="checkbox" id="toggle-verrueckter" checked><img src="Freak.svg" class="toggle-icon" alt="">Verrückter (Chaot)</label>
+<div class="zombie-desc">0.5 Leben (halber HP). Zieht bei „Verfehlt" zufällig 1 bis 3 Überlebende ab.</div>
+</div>
+
+<div class="zombie-toggle-item">
+<label class="checkbox-label"><input type="checkbox" id="toggle-monster" checked><img src="Monster.svg" class="toggle-icon" alt="">Monster (Boss)</label>
+<div class="zombie-desc">6 Leben. Härtester Brocken. Zieht bei „Verfehlt" direkt 2 Überlebende auf einmal ab.</div>
+</div>
+
+<div class="zombie-section-divider">🆕 Neue Zombiearten</div>
+
+<div class="zombie-toggle-item">
+<label class="checkbox-label"><input type="checkbox" id="toggle-haui" checked><img src="Haui.svg" class="toggle-icon" alt="">Haui (Duo)</label>
+<div class="zombie-desc">0.5 Leben je Zombie – taucht immer im Doppelpack auf. Zieht bei „Verfehlt" 1 Überlebenden komplett ab.</div>
+</div>
+
+<div class="zombie-toggle-item">
+<label class="checkbox-label"><input type="checkbox" id="toggle-schlurfer" checked><img src="Schlurfer.svg" class="toggle-icon" alt="">Schlurfer (Zäh & langsam)</label>
+<div class="zombie-desc">0.5 Leben. Sehr lange Distanz/Zeit (wie Bomber). Zieht bei „Verfehlt" nur ein halbes Leben ab.</div>
+</div>
+
+<div class="zombie-toggle-item">
+<label class="checkbox-label"><input type="checkbox" id="toggle-krebs" checked><img src="Krebs.svg" class="toggle-icon" alt="">Krebs (Selten & wertvoll)</label>
+<div class="zombie-desc">2 Leben. Erscheint selten. Ohne einen einzigen Fehlschuss besiegt: +3 Medikits (zusätzlich zum Kopftreffer-Bonus).</div>
+</div>
+
+<div class="zombie-toggle-item">
+<label class="checkbox-label"><input type="checkbox" id="toggle-spucker" checked><img src="Spucker.svg" class="toggle-icon" alt="">Spucker (Rückstoß)</label>
+<div class="zombie-desc">1 Leben. Zieht bei „Verfehlt" ein halbes Leben ab und wirft das Team spürbar zurück (+3m Distanzverlust, summiert sich bei Wiederholung).</div>
+</div>
+
+<div class="zombie-toggle-item">
+<label class="checkbox-label"><input type="checkbox" id="toggle-mutant" checked><img src="Mutant.svg" class="toggle-icon" alt="">Mutant (Zäher Brocken)</label>
+<div class="zombie-desc">4 Leben, nimmt nur halben Schaden. Zieht bei „Verfehlt" 2 Leben ab. Lässt bei Sieg eine Schutzweste fallen (extra Leben für einen Überlebenden).</div>
+</div>
+
+</div>
+</div>
+
+<div id="custom-settings-box" class="custom-settings-box hidden">
+<label style="color: var(--highlight-color); margin-bottom: 2px;">Benutzerdefinierte Anzahl:</label>
+<div class="custom-grid">
+<div class="form-group"><label>Beißer:</label><input type="number" id="custom-beisser" value="10" min="0" max="50"></div>
+<div class="form-group"><label>Sprinter:</label><input type="number" id="custom-sprinter" value="5" min="0" max="30"></div>
+<div class="form-group"><label>Bomber:</label><input type="number" id="custom-bomber" value="2" min="0" max="20"></div>
+<div class="form-group"><label>Schreierin:</label><input type="number" id="custom-schreierin" value="3" min="0" max="20"></div>
+<div class="form-group"><label>Verrückter:</label><input type="number" id="custom-verrueckter" value="3" min="0" max="20"></div>
+<div class="form-group"><label>Monster:</label><input type="number" id="custom-monster" value="1" min="0" max="10"></div>
+<div class="form-group"><label>Haui (Paare):</label><input type="number" id="custom-haui" value="2" min="0" max="15"></div>
+<div class="form-group"><label>Schlurfer:</label><input type="number" id="custom-schlurfer" value="3" min="0" max="20"></div>
+<div class="form-group"><label>Krebs:</label><input type="number" id="custom-krebs" value="1" min="0" max="10"></div>
+<div class="form-group"><label>Spucker:</label><input type="number" id="custom-spucker" value="3" min="0" max="20"></div>
+<div class="form-group"><label>Mutant:</label><input type="number" id="custom-mutant" value="1" min="0" max="10"></div>
+<div class="form-group" style="grid-column: span 2;"><label>Überlebende (NPCs):</label><input type="number" id="custom-survivors" value="8" min="0" max="50"></div>
+</div>
+</div>
+
+<div class="form-group">
+<label class="checkbox-label" style="font-weight: normal;">
+<input type="checkbox" id="enable-distance" checked style="width: 18px; height: 18px;">
+<span>Aktive Zombie-Distanz & Annäherung aktivieren</span>
+</label>
+</div>
+
+<button class="btn" style="margin-top: auto;" onclick="startGame()">Spiel Starten</button>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="game-screen" class="hidden">
+<div class="top-bar">
+<span style="font-weight: bold; font-size: 13px; color: #aaa;">ZOMBIE COMPANION</span>
+<div class="top-bar-buttons">
+<button class="btn-icon-menu" id="btn-pause" onclick="togglePause()">⏸️ Pause</button>
+<button class="btn-icon-menu" onclick="promptQuit()">⚙️ Menü</button>
+</div>
+</div>
+
+<div class="hud">
+<div class="hud-stat" style="color: #e74c3c;">
+<span class="hud-total" id="zombie-total"></span>
+<span class="hud-label">🧟 Zombies</span>
+<span class="hud-value" id="zombie-count">0</span>
+</div>
+<div class="hud-stat" style="color: #3498db;">
+<span class="hud-total" id="survivor-total"></span>
+<span class="hud-label">🧑 Überlebende</span>
+<span class="hud-value" id="survivor-count">0</span>
+</div>
+</div>
+
+<div class="resource-bar">
+<div class="resource-item">
+<span class="resource-label">💉 Medikits</span>
+<div class="medikit-controls">
+<button class="btn-mini" onclick="updateMedikit(-1)">-</button>
+<span class="hud-value-sm" id="medikit-count">0</span>
+<button class="btn-mini" onclick="updateMedikit(1)">+</button>
+</div>
+</div>
+<div class="resource-item">
+<span class="resource-label">🦺 Westen</span>
+<div class="medikit-controls">
+<button class="btn-mini" onclick="useVest()">-</button>
+<span class="hud-value-sm" id="vest-count">0</span>
+<button class="btn-mini" onclick="addVest(1)">+</button>
+</div>
+</div>
+</div>
+
+<div class="survivors-container">
+<h3>Überlebende</h3>
+<div class="survivors-grid" id="survivors-grid"></div>
+</div>
+
+<div class="zombie-display">
+<div id="distance-top-bar" class="distance-top-bar">
+<div id="distance-bar-bg" class="distance-progress-bg"></div>
+<div id="distance-container-inline" class="distance-hud-inline">📍 <span id="distance-text">50m</span></div>
+</div>
+
+<div class="zombie-content-wrapper">
+<div id="zombie-box" class="zombie-box">
+<div id="skulls-container" class="skulls"></div>
+<img id="zombie-img" class="zombie-img-icon" src="" alt="Zombie">
+<strong id="zombie-name" class="zombie-title">-</strong>
+</div>
+
+<div id="hb-container" class="health-bar-container">
+<div id="health-bar" class="health-bar-fill"></div>
+</div>
+<span id="health-text" style="font-size: 11px; margin-top: 3px; font-weight: bold;">0 / 0 Leben</span>
+</div>
+</div>
+
+<div class="action-buttons">
+<button class="btn-action btn-miss" onclick="handleMiss()">Verfehlt</button>
+<button class="btn-action btn-wound" onclick="dealDamage(0.5)">Verwunden<br><span style="font-size:10px; font-weight:normal;">(-0.5)</span></button>
+<button class="btn-action btn-hit" onclick="dealDamage(1.0)">Treffer<br><span style="font-size:10px; font-weight:normal;">(-1.0)</span></button>
+<button class="btn-action btn-headshot" onclick="dealDamage(3.0)">Kopf-<br>treffer<br><span style="font-size:10px; font-weight:normal;">(-3.0)</span></button>
+</div>
+</div>
+</div>
+
+<!-- EVENT BANNER -->
+<div id="event-banner" class="event-banner"></div>
 
 <!-- CHARACTER SELECTION MODAL -->
 <div id="char-modal" class="modal-overlay hidden">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Charakter Wählen</h3>
-        </div>
-        <div class="modal-body" id="modal-char-body"></div>
-    </div>
+<div class="modal-content">
+<div class="modal-header">
+<h3>Charakter Wählen</h3>
+</div>
+<div class="modal-body" id="modal-char-body"></div>
+</div>
 </div>
 
 <!-- QUIT CONFIRMATION MODAL -->
 <div id="quit-modal" class="modal-overlay hidden">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Spiel Beenden?</h3>
-        </div>
-        <div class="modal-body">
-            Möchtest du das Spiel abbrechen und zum Hauptmenü zurückkehren? Der Fortschritt geht verloren.
-        </div>
-        <div class="modal-actions">
-            <button class="btn-modal btn-confirm" onclick="confirmQuit()">Ja, Beenden</button>
-            <button class="btn-modal btn-cancel" onclick="closeQuitModal()">Abbrechen</button>
-        </div>
-    </div>
+<div class="modal-content">
+<div class="modal-header">
+<h3>Spiel Beenden?</h3>
+</div>
+<div class="modal-body">
+Möchtest du das Spiel abbrechen und zum Hauptmenü zurückkehren? Der Fortschritt geht verloren.
+</div>
+<div class="modal-actions">
+<button class="btn-modal btn-confirm" onclick="confirmQuit()">Ja, Beenden</button>
+<button class="btn-modal btn-cancel" onclick="closeQuitModal()">Abbrechen</button>
+</div>
+</div>
 </div>
 
 <!-- GAME END MODAL -->
 <div id="end-modal" class="modal-overlay hidden">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 id="end-modal-title">SPIEL ENDE</h3>
-        </div>
-        <div class="modal-body" id="end-modal-text"></div>
-        <div class="modal-actions">
-            <button class="btn-modal btn-confirm" onclick="resetToSetup()">Zum Hauptmenü</button>
-        </div>
-    </div>
+<div class="modal-content">
+<div class="modal-header">
+<h3 id="end-modal-title">SPIEL ENDE</h3>
+</div>
+<div class="modal-body" id="end-modal-text"></div>
+<div class="modal-actions">
+<button class="btn-modal btn-confirm" onclick="resetToSetup()">Zum Hauptmenü</button>
+</div>
+</div>
 </div>
 
 <script>
-    const availableCharacters = [
-        { icon: '🧑‍🌾', label: 'Farmer (M)', gender: 'm' },
-        { icon: '👨‍⚕️', label: 'Arzt (M)', gender: 'm' },
-        { icon: '👮‍♂️', label: 'Polizist (M)', gender: 'm' },
-        { icon: '👨‍🚒', label: 'Feuerwehrmann (M)', gender: 'm' },
-        { icon: '🪖', label: 'Söldner (M)', gender: 'm' },
-        { icon: '👩‍🌾', label: 'Farmerin (W)', gender: 'f' },
-        { icon: '👩‍⚕️', label: 'Ärztin (W)', gender: 'f' },
-        { icon: '👮‍♀️', label: 'Polizistin (W)', gender: 'f' },
-        { icon: '👩‍🚒', label: 'Feuerwehrfrau (W)', gender: 'f' },
-        { icon: '👩‍🎤', label: 'Überlebende (W)', gender: 'f' }
-    ];
+const availableCharacters = [
+{ icon: '🧑‍🌾', label: 'Farmer (M)', gender: 'm' },
+{ icon: '👨‍⚕️', label: 'Arzt (M)', gender: 'm' },
+{ icon: '👮‍♂️', label: 'Polizist (M)', gender: 'm' },
+{ icon: '👨‍🚒', label: 'Feuerwehrmann (M)', gender: 'm' },
+{ icon: '🪖', label: 'Söldner (M)', gender: 'm' },
+{ icon: '👩‍🌾', label: 'Farmerin (W)', gender: 'f' },
+{ icon: '👩‍⚕️', label: 'Ärztin (W)', gender: 'f' },
+{ icon: '👮‍♀️', label: 'Polizistin (W)', gender: 'f' },
+{ icon: '👩‍🚒', label: 'Feuerwehrfrau (W)', gender: 'f' },
+{ icon: '👩‍🎤', label: 'Überlebende (W)', gender: 'f' }
+];
 
-    let selectedPlayerIndexForModal = null;
-    let playersData = [];
-    let zombiesQueue = [];
-    let currentZombie = null;
-    let medikits = 0;
-    let isGameOver = false;
-    
-    let distanceEnabled = true;
-    let isPaused = false;
-    let timerInterval = null;
-    let totalZombieTime = 25; 
-    let remainingZombieTime = 25;
-    let speedModifier = 1.0;
+let selectedPlayerIndexForModal = null;
+let playersData = [];
+let zombiesQueue = [];
+let currentZombie = null;
+let medikits = 0;
+let vests = 0;
+let isGameOver = false;
 
-    function getRandomInt(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
+let distanceEnabled = true;
+let isPaused = false;
+let timerInterval = null;
+let totalZombieTime = 25;
+let remainingZombieTime = 25;
+let speedModifier = 1.0;
+let eventBannerTimeout = null;
 
-    function generatePlayerSetup() {
-        const count = parseInt(document.getElementById('player-count').value);
-        const container = document.getElementById('players-container');
-        container.innerHTML = '';
+function getRandomInt(min, max) {
+return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
-        for (let i = 0; i < count; i++) {
-            const defaultChar = availableCharacters[i % availableCharacters.length];
-            const div = document.createElement('div');
-            div.className = 'player-setup-card';
-            div.innerHTML = `
-                <label>Spieler ${i + 1} Name:</label>
-                <input type="text" id="player-name-${i}" value="Spieler ${i + 1}" maxlength="12">
-                <label>Charakter:</label>
-                <div class="char-select-btn" onclick="openCharModal(${i})">
-                    <div class="char-select-preview" id="preview-${i}">
-                        <span>${defaultChar.icon}</span>
-                        <span>${defaultChar.label}</span>
-                    </div>
-                    <span>Ändern ⚙️</span>
-                </div>
-                <input type="hidden" id="player-icon-${i}" value="${defaultChar.icon}">
-                <input type="hidden" id="player-label-${i}" value="${defaultChar.label}">
-            `;
-            container.appendChild(div);
-        }
-    }
+function showEventBanner(text) {
+const el = document.getElementById('event-banner');
+if (!el) return;
+el.textContent = text;
+el.classList.add('show');
+if (eventBannerTimeout) clearTimeout(eventBannerTimeout);
+eventBannerTimeout = setTimeout(() => { el.classList.remove('show'); }, 2400);
+}
 
-    function toggleCustomSettings() {
-        const diff = document.getElementById('difficulty').value;
-        const customBox = document.getElementById('custom-settings-box');
-        if (diff === 'custom') {
-            customBox.classList.remove('hidden');
-        } else {
-            customBox.classList.add('hidden');
-        }
-    }
+function generatePlayerSetup() {
+const count = parseInt(document.getElementById('player-count').value);
+const container = document.getElementById('players-container');
+container.innerHTML = '';
 
-    function openCharModal(playerIndex) {
-        selectedPlayerIndexForModal = playerIndex;
-        const bodyContainer = document.getElementById('modal-char-body');
-        bodyContainer.innerHTML = `
-            <div style="margin-bottom: 12px; font-weight: bold;">Wähle das Geschlecht:</div>
-            <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 15px;">
-                <button class="btn-modal btn-confirm" onclick="renderCharListForGender('${playerIndex}', 'm')">Männlich</button>
-                <button class="btn-modal btn-confirm" onclick="renderCharListForGender('${playerIndex}', 'f')">Weiblich</button>
-            </div>
-            <div class="modal-list" id="modal-char-list"></div>
-        `;
-        renderCharListForGender(playerIndex, 'm');
-        document.getElementById('char-modal').classList.remove('hidden');
-    }
+for (let i = 0; i < count; i++) {
+const defaultChar = availableCharacters[i % availableCharacters.length];
+const div = document.createElement('div');
+div.className = 'player-setup-card';
+div.innerHTML = `
+<label>Spieler ${i + 1} Name:</label>
+<input type="text" id="player-name-${i}" value="Spieler ${i + 1}" maxlength="12">
+<label>Charakter:</label>
+<div class="char-select-btn" onclick="openCharModal(${i})">
+<div class="char-select-preview" id="preview-${i}">
+<span>${defaultChar.icon}</span>
+<span>${defaultChar.label}</span>
+</div>
+<span>Ändern ⚙️</span>
+</div>
+<input type="hidden" id="player-icon-${i}" value="${defaultChar.icon}">
+<input type="hidden" id="player-label-${i}" value="${defaultChar.label}">
+`;
+container.appendChild(div);
+}
+}
 
-    function renderCharListForGender(playerIndex, gender) {
-        const listContainer = document.getElementById('modal-char-list');
-        if (!listContainer) return;
-        listContainer.innerHTML = '';
-        const currentIcon = document.getElementById(`player-icon-${playerIndex}`).value;
+function toggleCustomSettings() {
+const diff = document.getElementById('difficulty').value;
+const customBox = document.getElementById('custom-settings-box');
+if (diff === 'custom') {
+customBox.classList.remove('hidden');
+} else {
+customBox.classList.add('hidden');
+}
+}
 
-        availableCharacters.filter(c => c.gender === gender).forEach(char => {
-            const isSelected = char.icon === currentIcon;
-            const item = document.createElement('div');
-            item.className = `modal-item ${isSelected ? 'selected' : ''}`;
-            item.innerHTML = `
-                <span class="icon">${char.icon}</span>
-                <span class="icon-label">${char.label}</span>
-            `;
-            item.onclick = () => selectCharacter(char);
-            listContainer.appendChild(item);
-        });
-    }
+function openCharModal(playerIndex) {
+selectedPlayerIndexForModal = playerIndex;
+const bodyContainer = document.getElementById('modal-char-body');
+bodyContainer.innerHTML = `
+<div style="margin-bottom: 12px; font-weight: bold;">Wähle das Geschlecht:</div>
+<div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 15px;">
+<button class="btn-modal btn-confirm" onclick="renderCharListForGender('${playerIndex}', 'm')">Männlich</button>
+<button class="btn-modal btn-confirm" onclick="renderCharListForGender('${playerIndex}', 'f')">Weiblich</button>
+</div>
+<div class="modal-list" id="modal-char-list"></div>
+`;
+renderCharListForGender(playerIndex, 'm');
+document.getElementById('char-modal').classList.remove('hidden');
+}
 
-    function selectCharacter(char) {
-        if (selectedPlayerIndexForModal !== null) {
-            document.getElementById(`player-icon-${selectedPlayerIndexForModal}`).value = char.icon;
-            document.getElementById(`player-label-${selectedPlayerIndexForModal}`).value = char.label;
-            document.getElementById(`preview-${selectedPlayerIndexForModal}`).innerHTML = `
-                <span>${char.icon}</span>
-                <span>${char.label}</span>
-            `;
-        }
-        document.getElementById('char-modal').classList.add('hidden');
-    }
+function renderCharListForGender(playerIndex, gender) {
+const listContainer = document.getElementById('modal-char-list');
+if (!listContainer) return;
+listContainer.innerHTML = '';
+const currentIcon = document.getElementById(`player-icon-${playerIndex}`).value;
 
-    function startGame() {
-        isGameOver = false;
-        isPaused = false;
-        document.getElementById('btn-pause').innerText = "⏸️ Pause";
-        distanceEnabled = document.getElementById('enable-distance').checked;
+availableCharacters.filter(c => c.gender === gender).forEach(char => {
+const isSelected = char.icon === currentIcon;
+const item = document.createElement('div');
+item.className = `modal-item ${isSelected ? 'selected' : ''}`;
+item.innerHTML = `
+<span class="icon">${char.icon}</span>
+<span class="icon-label">${char.label}</span>
+`;
+item.onclick = () => selectCharacter(char);
+listContainer.appendChild(item);
+});
+}
 
-        const speedSetting = document.getElementById('zombie-speed').value;
-        if (speedSetting === 'slow') speedModifier = 2.0;
-        else if (speedSetting === 'medium') speedModifier = 1.0;
-        else if (speedSetting === 'fast') speedModifier = 0.5;
+function selectCharacter(char) {
+if (selectedPlayerIndexForModal !== null) {
+document.getElementById(`player-icon-${selectedPlayerIndexForModal}`).value = char.icon;
+document.getElementById(`player-label-${selectedPlayerIndexForModal}`).value = char.label;
+document.getElementById(`preview-${selectedPlayerIndexForModal}`).innerHTML = `
+<span>${char.icon}</span>
+<span>${char.label}</span>
+`;
+}
+document.getElementById('char-modal').classList.add('hidden');
+}
 
-        const pCount = parseInt(document.getElementById('player-count').value);
-        playersData = [];
-        for (let i = 0; i < pCount; i++) {
-            playersData.push({
-                name: document.getElementById(`player-name-${i}`).value || `Spieler ${i + 1}`,
-                icon: document.getElementById(`player-icon-${i}`).value
-            });
-        }
+function startGame() {
+isGameOver = false;
+isPaused = false;
+document.getElementById('btn-pause').innerText = "⏸️ Pause";
+distanceEnabled = document.getElementById('enable-distance').checked;
 
-        const diff = document.getElementById('difficulty').value;
-        let beisserCount = 0, sprinterCount = 0, bomberCount = 0, schreierinCount = 0, verrueckterCount = 0, monsterCount = 0, npcSurvivorCount = 0;
-        let baseSurvBonus = 0;
+const speedSetting = document.getElementById('zombie-speed').value;
+if (speedSetting === 'slow') speedModifier = 2.0;
+else if (speedSetting === 'medium') speedModifier = 1.0;
+else if (speedSetting === 'fast') speedModifier = 0.5;
 
-        if (diff === 'easy') baseSurvBonus = 5;
-        else if (diff === 'medium') baseSurvBonus = 10;
-        else if (diff === 'hard') baseSurvBonus = 15;
+const pCount = parseInt(document.getElementById('player-count').value);
+playersData = [];
+for (let i = 0; i < pCount; i++) {
+playersData.push({
+name: document.getElementById(`player-name-${i}`).value || `Spieler ${i + 1}`,
+icon: document.getElementById(`player-icon-${i}`).value
+});
+}
 
-        if (diff === 'custom') {
-            beisserCount = parseInt(document.getElementById('custom-beisser').value) || 0;
-            sprinterCount = parseInt(document.getElementById('custom-sprinter').value) || 0;
-            bomberCount = parseInt(document.getElementById('custom-bomber').value) || 0;
-            schreierinCount = parseInt(document.getElementById('custom-schreierin').value) || 0;
-            verrueckterCount = parseInt(document.getElementById('custom-verrueckter').value) || 0;
-            monsterCount = parseInt(document.getElementById('custom-monster').value) || 0;
-            npcSurvivorCount = (parseInt(document.getElementById('custom-survivors').value) || 0) + baseSurvBonus;
-        } else {
-            let bMin, bMax, sMin, sMax, boMin, boMax, survMin, survMax;
-            if (diff === 'easy') {
-                bMin = 9; bMax = 14; sMin = 4; sMax = 6; boMin = 2; boMax = 3; survMin = 11; survMax = 17;
-                schreierinCount = 3; verrueckterCount = getRandomInt(0, 3); monsterCount = 1;
-            } else if (diff === 'medium') {
-                bMin = 14; bMax = 19; sMin = 6; sMax = 9; boMin = 3; boMax = 5; survMin = 9; survMax = 13;
-                schreierinCount = 6; verrueckterCount = getRandomInt(1, 5); monsterCount = 2;
-            } else { // hard
-                bMin = 20; bMax = 28; sMin = 8; sMax = 12; boMin = 5; boMax = 7; survMin = 5; survMax = 9;
-                schreierinCount = 9; verrueckterCount = 7; monsterCount = 3;
-            }
+const diff = document.getElementById('difficulty').value;
+let beisserCount = 0, sprinterCount = 0, bomberCount = 0, schreierinCount = 0, verrueckterCount = 0, monsterCount = 0, npcSurvivorCount = 0;
+let hauiPairs = 0, schlurferCount = 0, krebsCount = 0, spuckerCount = 0, mutantCount = 0;
+let baseSurvBonus = 0;
 
-            beisserCount = getRandomInt(bMin, bMax);
-            sprinterCount = getRandomInt(sMin, sMax);
-            bomberCount = getRandomInt(boMin, boMax);
-            npcSurvivorCount = getRandomInt(survMin, survMax) + baseSurvBonus;
-        }
+if (diff === 'easy') baseSurvBonus = 5;
+else if (diff === 'medium') baseSurvBonus = 10;
+else if (diff === 'hard') baseSurvBonus = 15;
 
-        zombiesQueue = [];
-        if (document.getElementById('toggle-beisser').checked) {
-            for (let i = 0; i < beisserCount; i++) zombiesQueue.push({ name: 'Beißer', maxHp: 1, currentHp: 1, skulls: 1, class: 'beisser', icon: '1000007907.png' });
-        }
-        if (document.getElementById('toggle-sprinter').checked) {
-            for (let i = 0; i < sprinterCount; i++) zombiesQueue.push({ name: 'Sprinter', maxHp: 1, currentHp: 1, skulls: 1, class: 'sprinter', icon: '1000007908.png' });
-        }
-        if (document.getElementById('toggle-bomber').checked) {
-            for (let i = 0; i < bomberCount; i++) zombiesQueue.push({ name: 'Bomber', maxHp: 3, currentHp: 3, skulls: 3, class: 'bomber', icon: '1000007911.png' });
-        }
-        if (document.getElementById('toggle-schreierin').checked) {
-            for (let i = 0; i < schreierinCount; i++) zombiesQueue.push({ name: 'Schreierin', maxHp: 2, currentHp: 2, skulls: 2, class: 'schreierin', icon: '1000007906.png' });
-        }
-        if (document.getElementById('toggle-verrueckter').checked) {
-            for (let i = 0; i < verrueckterCount; i++) zombiesQueue.push({ name: 'Verrückter', maxHp: 0.5, currentHp: 0.5, skulls: 1, class: 'verrueckter', icon: '1000007912.png' });
-        }
-        if (document.getElementById('toggle-monster').checked) {
-            for (let i = 0; i < monsterCount; i++) zombiesQueue.push({ name: 'Monster', maxHp: 6, currentHp: 6, skulls: 5, class: 'monster', icon: '1000007913.png' });
-        }
+if (diff === 'custom') {
+beisserCount = parseInt(document.getElementById('custom-beisser').value) || 0;
+sprinterCount = parseInt(document.getElementById('custom-sprinter').value) || 0;
+bomberCount = parseInt(document.getElementById('custom-bomber').value) || 0;
+schreierinCount = parseInt(document.getElementById('custom-schreierin').value) || 0;
+verrueckterCount = parseInt(document.getElementById('custom-verrueckter').value) || 0;
+monsterCount = parseInt(document.getElementById('custom-monster').value) || 0;
+hauiPairs = parseInt(document.getElementById('custom-haui').value) || 0;
+schlurferCount = parseInt(document.getElementById('custom-schlurfer').value) || 0;
+krebsCount = parseInt(document.getElementById('custom-krebs').value) || 0;
+spuckerCount = parseInt(document.getElementById('custom-spucker').value) || 0;
+mutantCount = parseInt(document.getElementById('custom-mutant').value) || 0;
+npcSurvivorCount = (parseInt(document.getElementById('custom-survivors').value) || 0) + baseSurvBonus;
+} else {
+let bMin, bMax, sMin, sMax, boMin, boMax, survMin, survMax;
+if (diff === 'easy') {
+bMin = 9; bMax = 14; sMin = 4; sMax = 6; boMin = 2; boMax = 3; survMin = 11; survMax = 17;
+schreierinCount = 3; verrueckterCount = getRandomInt(0, 3); monsterCount = 1;
+hauiPairs = getRandomInt(1, 2); schlurferCount = getRandomInt(2, 3); krebsCount = getRandomInt(0, 1); spuckerCount = getRandomInt(2, 3); mutantCount = 1;
+} else if (diff === 'medium') {
+bMin = 14; bMax = 19; sMin = 6; sMax = 9; boMin = 3; boMax = 5; survMin = 9; survMax = 13;
+schreierinCount = 6; verrueckterCount = getRandomInt(1, 5); monsterCount = 2;
+hauiPairs = getRandomInt(2, 3); schlurferCount = getRandomInt(3, 5); krebsCount = 1; spuckerCount = getRandomInt(3, 5); mutantCount = getRandomInt(1, 2);
+} else { // hard
+bMin = 20; bMax = 28; sMin = 8; sMax = 12; boMin = 5; boMax = 7; survMin = 5; survMax = 9;
+schreierinCount = 9; verrueckterCount = 7; monsterCount = 3;
+hauiPairs = getRandomInt(3, 4); schlurferCount = getRandomInt(5, 7); krebsCount = getRandomInt(1, 2); spuckerCount = getRandomInt(5, 7); mutantCount = getRandomInt(2, 3);
+}
 
-        zombiesQueue.sort(() => Math.random() - 0.5);
+beisserCount = getRandomInt(bMin, bMax);
+sprinterCount = getRandomInt(sMin, sMax);
+bomberCount = getRandomInt(boMin, boMax);
+npcSurvivorCount = getRandomInt(survMin, survMax) + baseSurvBonus;
+}
 
-        const grid = document.getElementById('survivors-grid');
-        grid.innerHTML = '';
-        
-        const totalInitialSurvivors = playersData.length + npcSurvivorCount;
-        document.getElementById('survivor-count').innerText = totalInitialSurvivors;
+zombiesQueue = [];
+if (document.getElementById('toggle-beisser').checked) {
+for (let i = 0; i < beisserCount; i++) zombiesQueue.push({ name: 'Beißer', maxHp: 1, currentHp: 1, skulls: 1, class: 'beisser', icon: 'Beißer.svg' });
+}
+if (document.getElementById('toggle-sprinter').checked) {
+for (let i = 0; i < sprinterCount; i++) zombiesQueue.push({ name: 'Sprinter', maxHp: 1, currentHp: 1, skulls: 1, class: 'sprinter', icon: 'Sprinter.svg' });
+}
+if (document.getElementById('toggle-bomber').checked) {
+for (let i = 0; i < bomberCount; i++) zombiesQueue.push({ name: 'Bomber', maxHp: 3, currentHp: 3, skulls: 3, class: 'bomber', icon: 'Bomber.svg' });
+}
+if (document.getElementById('toggle-schreierin').checked) {
+for (let i = 0; i < schreierinCount; i++) zombiesQueue.push({ name: 'Schreierin', maxHp: 2, currentHp: 2, skulls: 2, class: 'schreierin', icon: 'Schreierin.svg' });
+}
+if (document.getElementById('toggle-verrueckter').checked) {
+for (let i = 0; i < verrueckterCount; i++) zombiesQueue.push({ name: 'Verrückter', maxHp: 0.5, currentHp: 0.5, skulls: 1, class: 'verrueckter', icon: 'Freak.svg' });
+}
+if (document.getElementById('toggle-monster').checked) {
+for (let i = 0; i < monsterCount; i++) zombiesQueue.push({ name: 'Monster', maxHp: 6, currentHp: 6, skulls: 5, class: 'monster', icon: 'Monster.svg' });
+}
+if (document.getElementById('toggle-schlurfer').checked) {
+for (let i = 0; i < schlurferCount; i++) zombiesQueue.push({ name: 'Schlurfer', maxHp: 0.5, currentHp: 0.5, skulls: 1, class: 'schlurfer', icon: 'Schlurfer.svg' });
+}
+if (document.getElementById('toggle-krebs').checked) {
+for (let i = 0; i < krebsCount; i++) zombiesQueue.push({ name: 'Krebs', maxHp: 2, currentHp: 2, skulls: 2, class: 'krebs', icon: 'Krebs.svg' });
+}
+if (document.getElementById('toggle-spucker').checked) {
+for (let i = 0; i < spuckerCount; i++) zombiesQueue.push({ name: 'Spucker', maxHp: 1, currentHp: 1, skulls: 1, class: 'spucker', icon: 'Spucker.svg' });
+}
+if (document.getElementById('toggle-mutant').checked) {
+for (let i = 0; i < mutantCount; i++) zombiesQueue.push({ name: 'Mutant', maxHp: 4, currentHp: 4, skulls: 4, class: 'mutant', icon: 'Mutant.svg' });
+}
 
-        playersData.forEach(p => {
-            grid.appendChild(createSurvivorCard(p.icon, p.name, true));
-        });
+zombiesQueue.sort(() => Math.random() - 0.5);
 
-        const npcIcons = ['🧑', '👨', '👩', '👱‍♂️', '👱‍♀️'];
-        for (let i = 0; i < npcSurvivorCount; i++) {
-            const genericIcon = npcIcons[Math.floor(Math.random() * npcIcons.length)];
-            grid.appendChild(createSurvivorCard(genericIcon, 'Überlebender', false));
-        }
+// Haui erscheint immer im Doppelpack -> nach dem Mischen als zusammenhängendes Paar einfügen
+if (document.getElementById('toggle-haui').checked) {
+for (let i = 0; i < hauiPairs; i++) {
+const pair = [
+{ name: 'Haui', maxHp: 0.5, currentHp: 0.5, skulls: 1, class: 'haui', icon: 'Haui.svg' },
+{ name: 'Haui', maxHp: 0.5, currentHp: 0.5, skulls: 1, class: 'haui', icon: 'Haui.svg' }
+];
+const insertPos = getRandomInt(0, zombiesQueue.length);
+zombiesQueue.splice(insertPos, 0, ...pair);
+}
+}
 
-        medikits = 0;
-        document.getElementById('medikit-count').innerText = medikits;
-        document.getElementById('setup-screen').classList.add('hidden');
-        document.getElementById('game-screen').classList.remove('hidden');
+document.getElementById('zombie-total').innerText = 'Start: ' + zombiesQueue.length;
 
-        if (distanceEnabled) {
-            document.getElementById('distance-top-bar').classList.remove('hidden');
-        } else {
-            document.getElementById('distance-top-bar').classList.add('hidden');
-        }
+const grid = document.getElementById('survivors-grid');
+grid.innerHTML = '';
 
-        nextZombie();
-    }
+const totalInitialSurvivors = playersData.length + npcSurvivorCount;
+document.getElementById('survivor-count').innerText = totalInitialSurvivors;
+document.getElementById('survivor-total').innerText = 'Start: ' + totalInitialSurvivors;
 
-    function createSurvivorCard(icon, name, isPlayer) {
-        const card = document.createElement('div');
-        card.className = `survivor-card ${isPlayer ? 'player' : ''}`;
-        card.innerHTML = `
-            <div class="survivor-avatar">${icon}</div>
-            <span class="survivor-name">${name}</span>
-        `;
-        card.onclick = function() {
-            if (isGameOver) return;
-            this.classList.toggle('dead');
-            updateSurvivorCount();
-        };
-        return card;
-    }
+playersData.forEach(p => {
+grid.appendChild(createSurvivorCard(p.icon, p.name, true));
+});
 
-    function updateSurvivorCount() {
-        const total = document.querySelectorAll('.survivor-card').length;
-        const dead = document.querySelectorAll('.survivor-card.dead').length;
-        const alive = total - dead;
-        document.getElementById('survivor-count').innerText = alive;
+const npcIcons = ['🧑', '👨', '👩', '👱‍♂️', '👱‍♀️'];
+for (let i = 0; i < npcSurvivorCount; i++) {
+const genericIcon = npcIcons[Math.floor(Math.random() * npcIcons.length)];
+grid.appendChild(createSurvivorCard(genericIcon, 'Überlebender', false));
+}
 
-        if (alive === 0 && !isGameOver) {
-            triggerGameOver(false);
-        }
-    }
+medikits = 0;
+vests = 0;
+document.getElementById('medikit-count').innerText = medikits;
+document.getElementById('vest-count').innerText = vests;
+document.getElementById('setup-screen').classList.add('hidden');
+document.getElementById('game-screen').classList.remove('hidden');
 
-    function killSingleSurvivor() {
-        const aliveCards = Array.from(document.querySelectorAll('.survivor-card:not(.dead)'));
-        if (aliveCards.length > 0) {
-            aliveCards[aliveCards.length - 1].classList.add('dead');
-            updateSurvivorCount();
-        }
-    }
+if (distanceEnabled) {
+document.getElementById('distance-top-bar').classList.remove('hidden');
+} else {
+document.getElementById('distance-top-bar').classList.add('hidden');
+}
 
-    function killMultipleSurvivors(count) {
-        for (let i = 0; i < count; i++) {
-            const aliveCards = Array.from(document.querySelectorAll('.survivor-card:not(.dead)'));
-            if (aliveCards.length > 0) {
-                aliveCards[aliveCards.length - 1].classList.add('dead');
-            }
-        }
-        updateSurvivorCount();
-    }
+nextZombie();
+}
 
-    function handleMiss() {
-        if (!currentZombie || isGameOver || isPaused) return;
+function createSurvivorCard(icon, name, isPlayer) {
+const card = document.createElement('div');
+card.className = `survivor-card ${isPlayer ? 'player' : ''}`;
+card.dataset.maxLife = '1';
+card.dataset.life = '1';
+card.innerHTML = `
+<div class="survivor-avatar">${icon}</div>
+<span class="survivor-name">${name}</span>
+`;
+card.onclick = function() {
+if (isGameOver) return;
+const isDead = this.classList.contains('dead');
+if (isDead) {
+this.dataset.life = this.dataset.maxLife;
+} else {
+this.dataset.life = '0';
+}
+updateSurvivorVisual(this);
+updateSurvivorCount();
+};
+return card;
+}
 
-        const diff = document.getElementById('difficulty').value;
+function updateSurvivorVisual(card) {
+const life = parseFloat(card.dataset.life);
+const maxLife = parseFloat(card.dataset.maxLife);
+card.classList.toggle('dead', life <= 0);
+card.classList.toggle('wounded', life > 0 && life < maxLife);
+card.classList.toggle('vested', maxLife > 1);
+}
 
-        if (currentZombie.class === 'beisser') {
-            killSingleSurvivor();
-        } else if (currentZombie.class === 'sprinter') {
-            killMultipleSurvivors(2);
-        } else if (currentZombie.class === 'bomber') {
-            killMultipleSurvivors(3);
-        } else if (currentZombie.class === 'schreierin') {
-            killSingleSurvivor();
-            let addCount = (diff === 'easy') ? 3 : (diff === 'medium') ? 5 : 6;
-            const possibleTypes = ['beisser', 'sprinter', 'bomber', 'schreierin'];
-            for (let i = 0; i < addCount; i++) {
-                let chosenType = possibleTypes[Math.floor(Math.random() * possibleTypes.length)];
-                let zObj = { name: 'Beißer', maxHp: 1, currentHp: 1, skulls: 1, class: 'beisser', icon: '1000007907.png' };
-                if (chosenType === 'sprinter') zObj = { name: 'Sprinter', maxHp: 1, currentHp: 1, skulls: 1, class: 'sprinter', icon: '1000007908.png' };
-                else if (chosenType === 'bomber') zObj = { name: 'Bomber', maxHp: 3, currentHp: 3, skulls: 3, class: 'bomber', icon: '1000007911.png' };
-                else if (chosenType === 'schreierin') zObj = { name: 'Schreierin', maxHp: 2, currentHp: 2, skulls: 2, class: 'schreierin', icon: '1000007906.png' };
-                zombiesQueue.push(zObj);
-            }
-            document.getElementById('zombie-count').innerText = zombiesQueue.length + 1;
-        } else if (currentZombie.class === 'verrueckter') {
-            let killCount = getRandomInt(1, 3);
-            killMultipleSurvivors(killCount);
-        } else if (currentZombie.class === 'monster') {
-            killMultipleSurvivors(2);
-        }
-    }
+function getAliveSurvivorCards() {
+return Array.from(document.querySelectorAll('.survivor-card:not(.dead)'));
+}
 
-    function nextZombie() {
-        stopTimer();
-        const skullsContainer = document.getElementById('skulls-container');
-        const hbContainer = document.getElementById('hb-container');
+function updateSurvivorCount() {
+const total = document.querySelectorAll('.survivor-card').length;
+const dead = document.querySelectorAll('.survivor-card.dead').length;
+const alive = total - dead;
+document.getElementById('survivor-count').innerText = alive;
 
-        if (zombiesQueue.length === 0) {
-            currentZombie = null;
-            document.getElementById('zombie-name').innerText = "ALLE BESIEGT";
-            document.getElementById('zombie-box').className = 'zombie-box';
-            document.getElementById('zombie-box').style.background = '#2ecc71';
-            document.getElementById('distance-top-bar').classList.add('hidden');
-            skullsContainer.innerHTML = '🎉';
-            document.getElementById('health-bar').style.width = '0%';
-            document.getElementById('health-text').innerText = 'ENDE';
-            document.getElementById('zombie-count').innerText = 0;
-            hbContainer.classList.remove('wounded');
-            
-            if (!isGameOver) triggerGameOver(true);
-            return;
-        }
+if (alive === 0 && !isGameOver) {
+triggerGameOver(false);
+}
+}
 
-        currentZombie = zombiesQueue.shift();
-        document.getElementById('zombie-count').innerText = zombiesQueue.length + 1;
-        
-        if (distanceEnabled) {
-            document.getElementById('distance-top-bar').classList.remove('hidden');
-            const diff = document.getElementById('difficulty').value;
-            let baseTime = 25;
-            if (currentZombie.class === 'sprinter') baseTime = (diff === 'easy') ? 15 : 7.5;
-            else if (currentZombie.class === 'bomber') baseTime = (diff === 'easy') ? 80 : 45;
-            
-            totalZombieTime = baseTime * speedModifier;
-            remainingZombieTime = totalZombieTime;
-            startTimer();
-        }
+// Zieht `count` Überlebenden jeweils ihr komplettes Leben ab (klassischer "Kill")
+function killSurvivors(count) {
+for (let i = 0; i < count; i++) {
+const alive = getAliveSurvivorCards();
+if (alive.length === 0) break;
+const target = alive[alive.length - 1];
+target.dataset.life = '0';
+updateSurvivorVisual(target);
+}
+updateSurvivorCount();
+}
 
-        renderZombie();
-    }
+// Zieht EINEM Überlebenden einen Teil seines Lebens ab (z.B. 0.5 = "verwundet"), ohne ihn sofort zu töten sofern noch Leben übrig ist
+function damageOneSurvivor(amount) {
+const alive = getAliveSurvivorCards();
+if (alive.length === 0) return;
+const target = alive.reduce((a, b) => parseFloat(a.dataset.life) <= parseFloat(b.dataset.life) ? a : b);
+const newLife = Math.max(0, parseFloat(target.dataset.life) - amount);
+target.dataset.life = newLife.toString();
+updateSurvivorVisual(target);
+updateSurvivorCount();
+}
 
-    function startTimer() {
-        stopTimer();
-        if (!distanceEnabled || isGameOver || isPaused) return;
+function killSingleSurvivor() {
+killSurvivors(1);
+}
 
-        timerInterval = setInterval(() => {
-            if (isPaused || isGameOver) return;
-            remainingZombieTime -= 0.5;
-            updateDistanceDisplay();
+function killMultipleSurvivors(count) {
+killSurvivors(count);
+}
 
-            if (remainingZombieTime <= 0) {
-                stopTimer();
-                handleMiss();
-                if (!isGameOver) nextZombie();
-            }
-        }, 500);
-    }
+function getMaxDistForZombie(zombie) {
+const diff = document.getElementById('difficulty').value;
+if (!zombie) return 50;
+if (zombie.class === 'sprinter') return 30;
+if (zombie.class === 'bomber' || zombie.class === 'schlurfer') return (diff === 'easy') ? 160 : 90;
+return 50;
+}
 
-    function stopTimer() {
-        if (timerInterval) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-        }
-    }
+function pushBackTeam(meters) {
+if (!distanceEnabled || !currentZombie) return;
+const maxDist = getMaxDistForZombie(currentZombie);
+const timePerMeter = totalZombieTime / maxDist;
+remainingZombieTime = Math.max(0, remainingZombieTime - (meters * timePerMeter));
+currentZombie.pushBackTotal = (currentZombie.pushBackTotal || 0) + meters;
+updateDistanceDisplay();
+showEventBanner(`🤢 Team wird zurückgeworfen! -${meters}m (gesamt -${currentZombie.pushBackTotal}m)`);
+}
 
-    function togglePause() {
-        if (isGameOver || !distanceEnabled) return;
-        isPaused = !isPaused;
-        const pauseBtn = document.getElementById('btn-pause');
-        if (isPaused) {
-            stopTimer();
-            pauseBtn.innerText = "▶️ Weiter";
-            pauseBtn.style.background = "#2ecc71";
-        } else {
-            startTimer();
-            pauseBtn.innerText = "⏸️ Pause";
-            pauseBtn.style.background = "#444";
-        }
-    }
+function handleMiss() {
+if (!currentZombie || isGameOver || isPaused) return;
 
-    function updateDistanceDisplay() {
-        if (!distanceEnabled || !currentZombie) return;
-        let maxDist = 50;
-        if (currentZombie.class === 'sprinter') maxDist = 30;
-        if (currentZombie.class === 'bomber') maxDist = (document.getElementById('difficulty').value === 'easy') ? 160 : 90;
+currentZombie.missed = true;
+const diff = document.getElementById('difficulty').value;
 
-        const currentDist = Math.max(0, Math.round((remainingZombieTime / totalZombieTime) * maxDist));
-        document.getElementById('distance-text').innerText = `${currentDist}m`;
+if (currentZombie.class === 'beisser') {
+killSurvivors(1);
+} else if (currentZombie.class === 'sprinter') {
+killSurvivors(2);
+} else if (currentZombie.class === 'bomber') {
+killSurvivors(3);
+} else if (currentZombie.class === 'schreierin') {
+killSurvivors(1);
+let addCount = (diff === 'easy') ? 3 : (diff === 'medium') ? 5 : 6;
+const possibleTypes = ['beisser', 'sprinter', 'bomber', 'schreierin'];
+for (let i = 0; i < addCount; i++) {
+let chosenType = possibleTypes[Math.floor(Math.random() * possibleTypes.length)];
+let zObj = { name: 'Beißer', maxHp: 1, currentHp: 1, skulls: 1, class: 'beisser', icon: 'Beißer.svg' };
+if (chosenType === 'sprinter') zObj = { name: 'Sprinter', maxHp: 1, currentHp: 1, skulls: 1, class: 'sprinter', icon: 'Sprinter.svg' };
+else if (chosenType === 'bomber') zObj = { name: 'Bomber', maxHp: 3, currentHp: 3, skulls: 3, class: 'bomber', icon: 'Bomber.svg' };
+else if (chosenType === 'schreierin') zObj = { name: 'Schreierin', maxHp: 2, currentHp: 2, skulls: 2, class: 'schreierin', icon: 'Schreierin.svg' };
+zombiesQueue.push(zObj);
+}
+document.getElementById('zombie-count').innerText = zombiesQueue.length + 1;
+} else if (currentZombie.class === 'verrueckter') {
+let killCount = getRandomInt(1, 3);
+killSurvivors(killCount);
+} else if (currentZombie.class === 'monster') {
+killSurvivors(2);
+} else if (currentZombie.class === 'haui') {
+killSurvivors(1);
+} else if (currentZombie.class === 'schlurfer') {
+damageOneSurvivor(0.5);
+} else if (currentZombie.class === 'krebs') {
+killSurvivors(1);
+} else if (currentZombie.class === 'spucker') {
+damageOneSurvivor(0.5);
+pushBackTeam(3);
+} else if (currentZombie.class === 'mutant') {
+killSurvivors(2);
+}
+}
 
-        const timePercentage = Math.max(0, (remainingZombieTime / totalZombieTime) * 100);
-        const bgBar = document.getElementById('distance-bar-bg');
-        bgBar.style.width = `${timePercentage}%`;
-        bgBar.style.background = timePercentage > 50 ? '#27ae60' : timePercentage > 20 ? '#d35400' : '#c0392b';
-    }
+function nextZombie() {
+stopTimer();
+const skullsContainer = document.getElementById('skulls-container');
+const hbContainer = document.getElementById('hb-container');
 
-    function knockbackZombie() {
-        if (!distanceEnabled || !currentZombie) return;
-        let maxDist = 50;
-        if (currentZombie.class === 'sprinter') maxDist = 30;
-        if (currentZombie.class === 'bomber') maxDist = (document.getElementById('difficulty').value === 'easy') ? 160 : 90;
+if (zombiesQueue.length === 0) {
+currentZombie = null;
+document.getElementById('zombie-name').innerText = "ALLE BESIEGT";
+document.getElementById('zombie-box').className = 'zombie-box';
+document.getElementById('zombie-box').style.background = '#2ecc71';
+document.getElementById('distance-top-bar').classList.add('hidden');
+skullsContainer.innerHTML = '🎉';
+document.getElementById('health-bar').style.width = '0%';
+document.getElementById('health-text').innerText = 'ENDE';
+document.getElementById('zombie-count').innerText = 0;
+hbContainer.classList.remove('wounded');
 
-        const timePerMeter = totalZombieTime / maxDist;
-        remainingZombieTime = Math.min(totalZombieTime, remainingZombieTime + (5 * timePerMeter));
-        updateDistanceDisplay();
-    }
+if (!isGameOver) triggerGameOver(true);
+return;
+}
 
-    function renderZombie() {
-        const box = document.getElementById('zombie-box');
-        const hbContainer = document.getElementById('hb-container');
-        box.className = `zombie-box ${currentZombie.class}`;
-        box.style.background = '';
-        
-        document.getElementById('zombie-name').innerText = currentZombie.name;
-        document.getElementById('zombie-img').src = currentZombie.icon;
+currentZombie = zombiesQueue.shift();
+currentZombie.missed = false;
+currentZombie.pushBackTotal = 0;
+document.getElementById('zombie-count').innerText = zombiesQueue.length + 1;
 
-        const skullsContainer = document.getElementById('skulls-container');
-        skullsContainer.innerHTML = '💀'.repeat(currentZombie.skulls);
+if (distanceEnabled) {
+document.getElementById('distance-top-bar').classList.remove('hidden');
+const diff = document.getElementById('difficulty').value;
+let baseTime = 25;
+if (currentZombie.class === 'sprinter') baseTime = (diff === 'easy') ? 15 : 7.5;
+else if (currentZombie.class === 'bomber' || currentZombie.class === 'schlurfer') baseTime = (diff === 'easy') ? 80 : 45;
 
-        if (currentZombie.currentHp > 0 && currentZombie.currentHp % 1 !== 0) {
-            hbContainer.classList.add('wounded');
-        } else {
-            hbContainer.classList.remove('wounded');
-        }
+totalZombieTime = baseTime * speedModifier;
+remainingZombieTime = totalZombieTime;
+startTimer();
+}
 
-        const pct = (currentZombie.currentHp / currentZombie.maxHp) * 100;
-        document.getElementById('health-bar').style.width = `${Math.max(0, pct)}%`;
-        document.getElementById('health-text').innerText = `${currentZombie.currentHp.toFixed(1).replace('.0','')} / ${currentZombie.maxHp} Leben`;
+renderZombie();
+}
 
-        if (distanceEnabled) updateDistanceDisplay();
-    }
+function startTimer() {
+stopTimer();
+if (!distanceEnabled || isGameOver || isPaused) return;
 
-    function dealDamage(amount) {
-        if (!currentZombie || isGameOver || isPaused) return;
+timerInterval = setInterval(() => {
+if (isPaused || isGameOver) return;
+remainingZombieTime -= 0.5;
+updateDistanceDisplay();
 
-        currentZombie.currentHp -= amount;
-        const box = document.getElementById('zombie-box');
-        box.style.transform = 'scale(1.05)';
-        setTimeout(() => box.style.transform = 'scale(1)', 100);
+if (remainingZombieTime <= 0) {
+stopTimer();
+handleMiss();
+if (!isGameOver) nextZombie();
+}
+}, 500);
+}
 
-        knockbackZombie();
+function stopTimer() {
+if (timerInterval) {
+clearInterval(timerInterval);
+timerInterval = null;
+}
+}
 
-        if (currentZombie.currentHp <= 0) {
-            currentZombie.currentHp = 0;
-            renderZombie();
-            setTimeout(nextZombie, 300);
-        } else {
-            renderZombie();
-        }
-    }
+function togglePause() {
+if (isGameOver || !distanceEnabled) return;
+isPaused = !isPaused;
+const pauseBtn = document.getElementById('btn-pause');
+if (isPaused) {
+stopTimer();
+pauseBtn.innerText = "▶️ Weiter";
+pauseBtn.style.background = "#2ecc71";
+} else {
+startTimer();
+pauseBtn.innerText = "⏸️ Pause";
+pauseBtn.style.background = "#444";
+}
+}
 
-    function updateMedikit(change) {
-        medikits = Math.max(0, medikits + change);
-        document.getElementById('medikit-count').innerText = medikits;
-    }
+function updateDistanceDisplay() {
+if (!distanceEnabled || !currentZombie) return;
+const maxDist = getMaxDistForZombie(currentZombie);
 
-    function triggerGameOver(victory) {
-        isGameOver = true;
-        stopTimer();
-        const modal = document.getElementById('end-modal');
-        const title = document.getElementById('end-modal-title');
-        const text = document.getElementById('end-modal-text');
+const currentDist = Math.max(0, Math.round((remainingZombieTime / totalZombieTime) * maxDist));
+document.getElementById('distance-text').innerText = `${currentDist}m`;
 
-        if (victory) {
-            title.innerText = "SIEG!";
-            title.style.color = "#2ecc71";
-            text.innerText = "Ihr habt es überlebt! Alle Zombies wurden erfolgreich vernichtet.";
-        } else {
-            title.innerText = "GAME OVER";
-            title.style.color = "#e74c3c";
-            text.innerText = "Ihr habt es nicht geschafft... Alle Überlebenden sind gefallen.";
-        }
-        modal.classList.remove('hidden');
-    }
+const timePercentage = Math.max(0, (remainingZombieTime / totalZombieTime) * 100);
+const bgBar = document.getElementById('distance-bar-bg');
+bgBar.style.width = `${timePercentage}%`;
+bgBar.style.background = timePercentage > 50 ? '#27ae60' : timePercentage > 20 ? '#d35400' : '#c0392b';
+}
 
-    function promptQuit() {
-        stopTimer();
-        document.getElementById('quit-modal').classList.remove('hidden');
-    }
+function knockbackZombie() {
+if (!distanceEnabled || !currentZombie) return;
+const maxDist = getMaxDistForZombie(currentZombie);
 
-    function closeQuitModal() {
-        if (!isPaused && !isGameOver) startTimer();
-        document.getElementById('quit-modal').classList.add('hidden');
-    }
+const timePerMeter = totalZombieTime / maxDist;
+remainingZombieTime = Math.min(totalZombieTime, remainingZombieTime + (5 * timePerMeter));
+updateDistanceDisplay();
+}
 
-    function confirmQuit() {
-        closeQuitModal();
-        resetToSetup();
-    }
+function renderZombie() {
+const box = document.getElementById('zombie-box');
+const hbContainer = document.getElementById('hb-container');
+box.className = `zombie-box ${currentZombie.class}`;
+box.style.background = '';
 
-    function resetToSetup() {
-        stopTimer();
-        document.getElementById('end-modal').classList.add('hidden');
-        document.getElementById('quit-modal').classList.add('hidden');
-        document.getElementById('game-screen').classList.add('hidden');
-        document.getElementById('setup-screen').classList.remove('hidden');
-    }
+document.getElementById('zombie-name').innerText = currentZombie.name;
+document.getElementById('zombie-img').src = currentZombie.icon;
 
-    generatePlayerSetup();
+const skullsContainer = document.getElementById('skulls-container');
+skullsContainer.innerHTML = '💀'.repeat(currentZombie.skulls);
+
+if (currentZombie.currentHp > 0 && currentZombie.currentHp % 1 !== 0) {
+hbContainer.classList.add('wounded');
+} else {
+hbContainer.classList.remove('wounded');
+}
+
+const pct = (currentZombie.currentHp / currentZombie.maxHp) * 100;
+document.getElementById('health-bar').style.width = `${Math.max(0, pct)}%`;
+document.getElementById('health-text').innerText = `${currentZombie.currentHp.toFixed(1).replace('.0','')} / ${currentZombie.maxHp} Leben`;
+
+if (distanceEnabled) updateDistanceDisplay();
+}
+
+function dealDamage(amount) {
+if (!currentZombie || isGameOver || isPaused) return;
+
+const applied = (currentZombie.class === 'mutant') ? amount / 2 : amount;
+currentZombie.currentHp -= applied;
+
+// Jeder Kopftreffer-Klick bringt ein Medikit, unabhängig vom (evtl. halbierten) Schaden
+if (amount === 3.0) {
+updateMedikit(1);
+}
+
+const box = document.getElementById('zombie-box');
+box.style.transform = 'scale(1.05)';
+setTimeout(() => box.style.transform = 'scale(1)', 100);
+
+knockbackZombie();
+
+if (currentZombie.currentHp <= 0) {
+currentZombie.currentHp = 0;
+
+if (currentZombie.class === 'krebs' && !currentZombie.missed) {
+updateMedikit(3);
+showEventBanner('🦀 Krebs ohne Fehlschuss besiegt: +3 Medikits!');
+}
+
+if (currentZombie.class === 'mutant') {
+addVest(1);
+showEventBanner('🦺 Mutant besiegt: Schutzweste erhalten!');
+}
+
+renderZombie();
+setTimeout(nextZombie, 300);
+} else {
+renderZombie();
+}
+}
+
+function updateMedikit(change) {
+medikits = Math.max(0, medikits + change);
+document.getElementById('medikit-count').innerText = medikits;
+}
+
+function addVest(amount) {
+vests = Math.max(0, vests + amount);
+document.getElementById('vest-count').innerText = vests;
+}
+
+// Wendet eine Schutzweste an: zuerst auf Spieler, dann auf übrige Überlebende.
+// Gibt +1 maximales Leben (und volle Heilung), kann Tote NICHT wiederbeleben.
+function useVest() {
+if (vests <= 0) {
+showEventBanner('🦺 Keine Schutzweste vorhanden!');
+return;
+}
+
+const cards = Array.from(document.querySelectorAll('.survivor-card'));
+const eligible = c => !c.classList.contains('dead') && parseFloat(c.dataset.maxLife) < 2;
+const players = cards.filter(c => c.classList.contains('player') && eligible(c));
+const others = cards.filter(c => !c.classList.contains('player') && eligible(c));
+const target = players[0] || others[0];
+
+if (!target) {
+showEventBanner('🦺 Alle Überlebenden haben bereits eine Weste (oder sind tot)!');
+return;
+}
+
+target.dataset.maxLife = (parseFloat(target.dataset.maxLife) + 1).toString();
+target.dataset.life = target.dataset.maxLife;
+updateSurvivorVisual(target);
+
+vests -= 1;
+document.getElementById('vest-count').innerText = vests;
+updateSurvivorCount();
+
+const nm = target.querySelector('.survivor-name').innerText;
+showEventBanner(`🦺 Schutzweste an ${nm} vergeben!`);
+}
+
+function triggerGameOver(victory) {
+isGameOver = true;
+stopTimer();
+const modal = document.getElementById('end-modal');
+const title = document.getElementById('end-modal-title');
+const text = document.getElementById('end-modal-text');
+
+if (victory) {
+title.innerText = "SIEG!";
+title.style.color = "#2ecc71";
+text.innerText = "Ihr habt es überlebt! Alle Zombies wurden erfolgreich vernichtet.";
+} else {
+title.innerText = "GAME OVER";
+title.style.color = "#e74c3c";
+text.innerText = "Ihr habt es nicht geschafft... Alle Überlebenden sind gefallen.";
+}
+modal.classList.remove('hidden');
+}
+
+function promptQuit() {
+stopTimer();
+document.getElementById('quit-modal').classList.remove('hidden');
+}
+
+function closeQuitModal() {
+if (!isPaused && !isGameOver) startTimer();
+document.getElementById('quit-modal').classList.add('hidden');
+}
+
+function confirmQuit() {
+closeQuitModal();
+resetToSetup();
+}
+
+function resetToSetup() {
+stopTimer();
+document.getElementById('end-modal').classList.add('hidden');
+document.getElementById('quit-modal').classList.add('hidden');
+document.getElementById('game-screen').classList.add('hidden');
+document.getElementById('setup-screen').classList.remove('hidden');
+}
+
+generatePlayerSetup();
 </script>
 </body>
 </html>
