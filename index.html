@@ -182,6 +182,26 @@ font-weight: bold;
 font-size: 16px;
 }
 
+.char-icon {
+width: 28px;
+height: 28px;
+object-fit: contain;
+flex-shrink: 0;
+background: #fff;
+border-radius: 50%;
+padding: 2px;
+}
+
+.char-icon-sm {
+width: 24px;
+height: 24px;
+object-fit: contain;
+flex-shrink: 0;
+background: #fff;
+border-radius: 50%;
+padding: 2px;
+}
+
 .btn {
 width: 100%;
 padding: 14px;
@@ -341,6 +361,24 @@ max-height: 130px;
 flex: 1.1;
 }
 
+.survivors-header {
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 8px;
+position: relative;
+}
+
+.survivor-list-toggle {
+font-size: 10px;
+color: var(--highlight-color);
+text-decoration: underline;
+cursor: pointer;
+position: absolute;
+right: 0;
+top: 2px;
+}
+
 .survivors-grid {
 display: grid;
 grid-template-columns: repeat(auto-fill, minmax(54px, 1fr));
@@ -357,6 +395,10 @@ font-size: 10px;
 text-align: center;
 cursor: pointer;
 transition: opacity 0.2s, transform 0.1s;
+}
+
+.survivor-card.list-hidden {
+display: none;
 }
 
 .survivor-card.dead {
@@ -378,6 +420,14 @@ border: 2px solid transparent;
 position: relative;
 }
 
+.survivor-avatar img {
+width: 100%;
+height: 100%;
+object-fit: contain;
+background: #fff;
+border-radius: 50%;
+}
+
 .survivor-card.player .survivor-avatar {
 border-color: var(--highlight-color);
 box-shadow: 0 0 8px rgba(241, 196, 15, 0.6);
@@ -393,6 +443,7 @@ height: 11px;
 background: #e67e22;
 border-radius: 50%;
 border: 1px solid #222;
+z-index: 2;
 }
 
 .survivor-card.vested .survivor-avatar::after {
@@ -402,6 +453,7 @@ bottom: -6px;
 right: -6px;
 font-size: 13px;
 line-height: 1;
+z-index: 2;
 }
 
 .survivor-name {
@@ -462,6 +514,30 @@ font-weight: 900;
 color: #fff;
 text-shadow: 0 2px 4px rgba(0,0,0,0.9);
 letter-spacing: 1px;
+}
+
+.active-effects-bar {
+position: absolute;
+top: 42px;
+left: 0;
+width: 100%;
+display: flex;
+flex-wrap: wrap;
+gap: 4px;
+justify-content: center;
+padding: 2px 6px;
+z-index: 2;
+}
+
+.effect-chip {
+background: rgba(0, 0, 0, 0.55);
+border: 1px solid var(--highlight-color);
+color: #fff;
+font-size: 9px;
+padding: 2px 6px;
+border-radius: 8px;
+font-weight: bold;
+white-space: nowrap;
 }
 
 .zombie-content-wrapper {
@@ -662,7 +738,18 @@ border-color: var(--highlight-color);
 background: #444;
 }
 
-.modal-item span.icon { font-size: 24px; }
+.ability-row {
+text-align: left;
+background: #383838;
+border: 1px solid #444;
+border-radius: 8px;
+padding: 10px 12px;
+margin-bottom: 8px;
+}
+
+.ability-row strong {
+color: var(--highlight-color);
+}
 
 .modal-actions {
 display: flex;
@@ -865,7 +952,10 @@ cursor: pointer;
 </div>
 
 <div class="survivors-container">
+<div class="survivors-header">
 <h3>Überlebende</h3>
+<span class="survivor-list-toggle hidden" id="survivor-list-toggle" onclick="toggleSurvivorList()"></span>
+</div>
 <div class="survivors-grid" id="survivors-grid"></div>
 </div>
 
@@ -874,6 +964,8 @@ cursor: pointer;
 <div id="distance-bar-bg" class="distance-progress-bg"></div>
 <div id="distance-container-inline" class="distance-hud-inline">📍 <span id="distance-text">50m</span></div>
 </div>
+
+<div id="active-effects-bar" class="active-effects-bar"></div>
 
 <div class="zombie-content-wrapper">
 <div id="zombie-box" class="zombie-box">
@@ -911,6 +1003,19 @@ cursor: pointer;
 </div>
 </div>
 
+<!-- ABILITIES INTRO MODAL -->
+<div id="abilities-modal" class="modal-overlay hidden">
+<div class="modal-content">
+<div class="modal-header">
+<h3>Aktive Fähigkeiten</h3>
+</div>
+<div class="modal-body" id="abilities-modal-body"></div>
+<div class="modal-actions">
+<button class="btn-modal btn-confirm" onclick="document.getElementById('abilities-modal').classList.add('hidden')">Los geht's!</button>
+</div>
+</div>
+</div>
+
 <!-- QUIT CONFIRMATION MODAL -->
 <div id="quit-modal" class="modal-overlay hidden">
 <div class="modal-content">
@@ -941,18 +1046,46 @@ Möchtest du das Spiel abbrechen und zum Hauptmenü zurückkehren? Der Fortschri
 </div>
 
 <script>
+// Jede Profession existiert einmal männlich (m) und einmal weiblich (f). "key" verknüpft die Figur
+// mit ihrer Fähigkeit in PROFESSION_ABILITIES.
 const availableCharacters = [
-{ icon: '🧑‍🌾', label: 'Farmer (M)', gender: 'm' },
-{ icon: '👨‍⚕️', label: 'Arzt (M)', gender: 'm' },
-{ icon: '👮‍♂️', label: 'Polizist (M)', gender: 'm' },
-{ icon: '👨‍🚒', label: 'Feuerwehrmann (M)', gender: 'm' },
-{ icon: '🪖', label: 'Söldner (M)', gender: 'm' },
-{ icon: '👩‍🌾', label: 'Farmerin (W)', gender: 'f' },
-{ icon: '👩‍⚕️', label: 'Ärztin (W)', gender: 'f' },
-{ icon: '👮‍♀️', label: 'Polizistin (W)', gender: 'f' },
-{ icon: '👩‍🚒', label: 'Feuerwehrfrau (W)', gender: 'f' },
-{ icon: '👩‍🎤', label: 'Überlebende (W)', gender: 'f' }
+{ key: 'doctor', icon: '009-doctor.svg', label: 'Arzt', gender: 'm' },
+{ key: 'doctor', icon: '021-Pharmacist.svg', label: 'Ärztin', gender: 'f' },
+{ key: 'farmer', icon: '013-farmer.svg', label: 'Farmer', gender: 'm' },
+{ key: 'farmer', icon: '005-coffee maker.svg', label: 'Farmerin', gender: 'f' },
+{ key: 'policeman', icon: '021-policeman.svg', label: 'Polizist', gender: 'm' },
+{ key: 'policeman', icon: '025-security.svg', label: 'Polizistin', gender: 'f' },
+{ key: 'fireman', icon: '014-fireman.svg', label: 'Feuerwehrmann', gender: 'm' },
+{ key: 'fireman', icon: '014-blacksmith.svg', label: 'Feuerwehrfrau', gender: 'f' },
+{ key: 'soldier', icon: '028-soldier.svg', label: 'Söldner', gender: 'm' },
+{ key: 'soldier', icon: '016-shooter.svg', label: 'Söldnerin', gender: 'f' },
+{ key: 'engineer', icon: '012-engineer.svg', label: 'Engineer', gender: 'm' },
+{ key: 'engineer', icon: '030-welder.svg', label: 'Engineerin', gender: 'f' },
+{ key: 'scientist', icon: '024-scientist.svg', label: 'Wissenschaftler', gender: 'm' },
+{ key: 'scientist', icon: '026-scientist.svg', label: 'Wissenschaftlerin', gender: 'f' },
+{ key: 'sailor', icon: '025-sailor.svg', label: 'Segler', gender: 'm' },
+{ key: 'sailor', icon: '017-news reporter.svg', label: 'Seglerin', gender: 'f' },
+{ key: 'priest', icon: '023-priest.svg', label: 'Priester', gender: 'm' },
+{ key: 'priest', icon: '019-teacher.svg', label: 'Priesterin', gender: 'f' },
+{ key: 'chef', icon: '006-chef.svg', label: 'Chef', gender: 'm' },
+{ key: 'chef', icon: '029-waitress.svg', label: 'Chefin', gender: 'f' }
 ];
+
+// Generische Avatare für namenlose Überlebende (NPCs)
+const GENERIC_SURVIVOR_ICONS = ['028-woman.svg', '017-worker.svg'];
+
+const PROFESSION_ABILITIES = {
+doctor: { name: '🩺 Arzt', short: '🩺 +3 Medikits', desc: 'Startet mit 3 Medikits.' },
+farmer: { name: '🌾 Farmer', short: '🌾 Verstärkung bei 2/3', desc: 'Sobald 2/3 der zu Spielbeginn geplanten Zombies besiegt sind, kommen einmalig 5 neue Überlebende als Verstärkung.' },
+policeman: { name: '👮 Polizist', short: '👮 Rüstung + Doppelschuss', desc: 'Startet mit Rüstung (+0,5 Leben, halbierter Schaden). Nach jedem Kopftreffer wird sofort ein weiterer Kopftreffer ausgelöst.' },
+fireman: { name: '🚒 Feuerwehrmann', short: '🚒 3x Schutzweste', desc: 'Rüstet zu Spielbeginn 3 Überlebende (zuerst Spieler, dann übrige) mit Schutzwesten aus.' },
+soldier: { name: '🎖️ Söldner', short: '🎖️ Rückstoß 10m / Doppelschuss', desc: 'Mit Distanz-Modus: Rückstoß-Bonus pro Treffer steigt auf 10m. Ohne Distanz-Modus: löst nach Kopftreffer stattdessen ebenfalls einen Doppelschuss aus.' },
+engineer: { name: '🔧 Engineer', short: '🔧 Weste + 5x bei 50%', desc: 'Startet mit Schutzweste. Sobald die Hälfte der Zombies besiegt ist, rüstet er einmalig 5 weitere Überlebende mit Schutzwesten aus.' },
+scientist: { name: '🔬 Wissenschaftler', short: '🔬 -2 Horde', desc: 'Schreierins Horde bei „Verfehlt" spawnt 2 Zombies weniger.' },
+sailor: { name: '⚓ Segler', short: '⚓ Immun + Bonus-Distanz', desc: 'Komplett immun gegen Spuckers Rückstoß. Bei jedem Kopftreffer zusätzlich +3m Distanz-Bonus.' },
+priest: { name: '✝️ Priester', short: '✝️ Schutzengel (3x)', desc: 'Die ersten 3 Zombie-Treffer im Spiel (bei „Verfehlt") werden ignoriert. Stirbt er selbst, kommen 2 neue Überlebende dazu.' },
+chef: { name: '🍳 Chef', short: '🍳 -75% Horde', desc: 'Schreierins Horde bei „Verfehlt" wird um 75% reduziert, weil er die Zombies weglockt.' }
+};
 
 let selectedPlayerIndexForModal = null;
 let playersData = [];
@@ -970,6 +1103,15 @@ let remainingZombieTime = 25;
 let speedModifier = 1.0;
 let eventBannerTimeout = null;
 
+let activeProfessions = new Set();
+let priestShieldRemaining = 0;
+let priestDeathBonusFired = false;
+let farmerReinforcementFired = false;
+let engineerSupportFired = false;
+let initialZombieTotal = 0;
+let defeatedZombieCount = 0;
+let survivorListExpanded = false;
+
 function getRandomInt(min, max) {
 return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -980,7 +1122,7 @@ if (!el) return;
 el.textContent = text;
 el.classList.add('show');
 if (eventBannerTimeout) clearTimeout(eventBannerTimeout);
-eventBannerTimeout = setTimeout(() => { el.classList.remove('show'); }, 2400);
+eventBannerTimeout = setTimeout(() => { el.classList.remove('show'); }, 2600);
 }
 
 function generatePlayerSetup() {
@@ -998,13 +1140,14 @@ div.innerHTML = `
 <label>Charakter:</label>
 <div class="char-select-btn" onclick="openCharModal(${i})">
 <div class="char-select-preview" id="preview-${i}">
-<span>${defaultChar.icon}</span>
+<img src="${defaultChar.icon}" class="char-icon-sm" alt="">
 <span>${defaultChar.label}</span>
 </div>
 <span>Ändern ⚙️</span>
 </div>
 <input type="hidden" id="player-icon-${i}" value="${defaultChar.icon}">
 <input type="hidden" id="player-label-${i}" value="${defaultChar.label}">
+<input type="hidden" id="player-key-${i}" value="${defaultChar.key}">
 `;
 container.appendChild(div);
 }
@@ -1045,9 +1188,13 @@ availableCharacters.filter(c => c.gender === gender).forEach(char => {
 const isSelected = char.icon === currentIcon;
 const item = document.createElement('div');
 item.className = `modal-item ${isSelected ? 'selected' : ''}`;
+const ability = PROFESSION_ABILITIES[char.key];
 item.innerHTML = `
-<span class="icon">${char.icon}</span>
-<span class="icon-label">${char.label}</span>
+<img src="${char.icon}" class="char-icon" alt="">
+<div>
+<div class="icon-label" style="font-weight:bold;">${char.label}</div>
+${ability ? `<div style="font-size:11px; color:#aaa;">${ability.short}</div>` : ''}
+</div>
 `;
 item.onclick = () => selectCharacter(char);
 listContainer.appendChild(item);
@@ -1058,8 +1205,9 @@ function selectCharacter(char) {
 if (selectedPlayerIndexForModal !== null) {
 document.getElementById(`player-icon-${selectedPlayerIndexForModal}`).value = char.icon;
 document.getElementById(`player-label-${selectedPlayerIndexForModal}`).value = char.label;
+document.getElementById(`player-key-${selectedPlayerIndexForModal}`).value = char.key;
 document.getElementById(`preview-${selectedPlayerIndexForModal}`).innerHTML = `
-<span>${char.icon}</span>
+<img src="${char.icon}" class="char-icon-sm" alt="">
 <span>${char.label}</span>
 `;
 }
@@ -1082,9 +1230,18 @@ playersData = [];
 for (let i = 0; i < pCount; i++) {
 playersData.push({
 name: document.getElementById(`player-name-${i}`).value || `Spieler ${i + 1}`,
-icon: document.getElementById(`player-icon-${i}`).value
+icon: document.getElementById(`player-icon-${i}`).value,
+profession: document.getElementById(`player-key-${i}`).value || ''
 });
 }
+
+activeProfessions = new Set(playersData.map(p => p.profession).filter(Boolean));
+priestShieldRemaining = activeProfessions.has('priest') ? 3 : 0;
+priestDeathBonusFired = false;
+farmerReinforcementFired = false;
+engineerSupportFired = false;
+defeatedZombieCount = 0;
+survivorListExpanded = false;
 
 const diff = document.getElementById('difficulty').value;
 let beisserCount = 0, sprinterCount = 0, bomberCount = 0, schreierinCount = 0, verrueckterCount = 0, monsterCount = 0, npcSurvivorCount = 0;
@@ -1176,7 +1333,8 @@ zombiesQueue.splice(insertPos, 0, ...pair);
 }
 }
 
-document.getElementById('zombie-total').innerText = 'Start: ' + zombiesQueue.length;
+initialZombieTotal = zombiesQueue.length;
+document.getElementById('zombie-total').innerText = 'Start: ' + initialZombieTotal;
 
 const grid = document.getElementById('survivors-grid');
 grid.innerHTML = '';
@@ -1186,17 +1344,31 @@ document.getElementById('survivor-count').innerText = totalInitialSurvivors;
 document.getElementById('survivor-total').innerText = 'Start: ' + totalInitialSurvivors;
 
 playersData.forEach(p => {
-grid.appendChild(createSurvivorCard(p.icon, p.name, true));
+grid.appendChild(createSurvivorCard(p.icon, p.name, true, p.profession));
 });
 
-const npcIcons = ['🧑', '👨', '👩', '👱‍♂️', '👱‍♀️'];
 for (let i = 0; i < npcSurvivorCount; i++) {
-const genericIcon = npcIcons[Math.floor(Math.random() * npcIcons.length)];
+const genericIcon = GENERIC_SURVIVOR_ICONS[Math.floor(Math.random() * GENERIC_SURVIVOR_ICONS.length)];
 grid.appendChild(createSurvivorCard(genericIcon, 'Überlebender', false));
 }
 
 medikits = 0;
 vests = 0;
+if (activeProfessions.has('doctor')) medikits += 3;
+
+// Persönliche Start-Ausrüstung: Polizist & Engineer bekommen selbst eine Rüstung/Weste
+playersData.forEach((p, idx) => {
+if (p.profession === 'policeman' || p.profession === 'engineer') {
+const card = grid.children[idx];
+if (card) equipVestOnCard(card);
+}
+});
+
+// Feuerwehrmann rüstet zu Spielbeginn 3 Überlebende aus (zuerst Spieler, dann übrige)
+if (activeProfessions.has('fireman')) {
+equipVests(3);
+}
+
 document.getElementById('medikit-count').innerText = medikits;
 document.getElementById('vest-count').innerText = vests;
 document.getElementById('setup-screen').classList.add('hidden');
@@ -1208,16 +1380,46 @@ document.getElementById('distance-top-bar').classList.remove('hidden');
 document.getElementById('distance-top-bar').classList.add('hidden');
 }
 
+updateSurvivorListVisibility();
+populateActiveEffectsBar();
+showAbilitiesIntro();
+
 nextZombie();
 }
 
-function createSurvivorCard(icon, name, isPlayer) {
+function populateActiveEffectsBar() {
+const bar = document.getElementById('active-effects-bar');
+if (!bar) return;
+bar.innerHTML = '';
+activeProfessions.forEach(key => {
+const info = PROFESSION_ABILITIES[key];
+if (!info) return;
+const chip = document.createElement('span');
+chip.className = 'effect-chip';
+chip.textContent = info.short;
+bar.appendChild(chip);
+});
+}
+
+function showAbilitiesIntro() {
+if (activeProfessions.size === 0) return;
+const body = document.getElementById('abilities-modal-body');
+body.innerHTML = Array.from(activeProfessions).map(key => {
+const info = PROFESSION_ABILITIES[key];
+if (!info) return '';
+return `<div class="ability-row"><strong>${info.name}</strong><br><span style="font-size:13px; color:#ccc;">${info.desc}</span></div>`;
+}).join('');
+document.getElementById('abilities-modal').classList.remove('hidden');
+}
+
+function createSurvivorCard(icon, name, isPlayer, profession) {
 const card = document.createElement('div');
 card.className = `survivor-card ${isPlayer ? 'player' : ''}`;
 card.dataset.maxLife = '1';
 card.dataset.life = '1';
+card.dataset.profession = profession || '';
 card.innerHTML = `
-<div class="survivor-avatar">${icon}</div>
+<div class="survivor-avatar"><img src="${icon}" alt=""></div>
 <span class="survivor-name">${name}</span>
 `;
 card.onclick = function() {
@@ -1257,35 +1459,106 @@ triggerGameOver(false);
 }
 }
 
-// Zieht `count` Überlebenden jeweils ihr komplettes Leben ab (klassischer "Kill")
+function updateSurvivorListVisibility() {
+const grid = document.getElementById('survivors-grid');
+if (!grid) return;
+const toggle = document.getElementById('survivor-list-toggle');
+const allCards = Array.from(grid.children);
+const npcCards = allCards.filter(c => !c.classList.contains('player'));
+
+if (survivorListExpanded || npcCards.length <= 5) {
+npcCards.forEach(c => c.classList.remove('list-hidden'));
+if (npcCards.length > 5) {
+toggle.textContent = '▲ Einklappen';
+toggle.classList.remove('hidden');
+} else {
+toggle.classList.add('hidden');
+}
+} else {
+const hiddenCount = npcCards.length - 5;
+npcCards.slice(0, hiddenCount).forEach(c => c.classList.add('list-hidden'));
+npcCards.slice(hiddenCount).forEach(c => c.classList.remove('list-hidden'));
+toggle.textContent = `+${hiddenCount} weitere anzeigen`;
+toggle.classList.remove('hidden');
+}
+}
+
+function toggleSurvivorList() {
+survivorListExpanded = !survivorListExpanded;
+updateSurvivorListVisibility();
+}
+
+// Wendet einmalig Schaden auf EINEN konkreten Überlebenden an. Mit Schutzweste/Rüstung ist der
+// Schaden pro Treffer auf 0,5 Leben gedeckelt. Löst ggf. den Priester-Tod-Bonus aus.
+function applyDamageToSurvivor(target, amount) {
+if (!target) return;
+const vested = target.classList.contains('vested');
+const dmg = vested ? Math.min(amount, 0.5) : amount;
+const wasAlive = parseFloat(target.dataset.life) > 0;
+const newLife = Math.max(0, parseFloat(target.dataset.life) - dmg);
+target.dataset.life = newLife.toString();
+updateSurvivorVisual(target);
+
+if (wasAlive && newLife <= 0 && target.dataset.profession === 'priest' && !priestDeathBonusFired) {
+priestDeathBonusFired = true;
+addReinforcements(2);
+showEventBanner('✝️ Der Priester ist gefallen – 2 neue Überlebende schließen sich zur Erinnerung an!');
+}
+}
+
+// Zieht `count` Überlebenden jeweils ihr komplettes (verbleibendes) Leben ab (klassischer "Kill")
 function killSurvivors(count) {
 for (let i = 0; i < count; i++) {
 const alive = getAliveSurvivorCards();
 if (alive.length === 0) break;
 const target = alive[alive.length - 1];
-target.dataset.life = '0';
-updateSurvivorVisual(target);
+applyDamageToSurvivor(target, parseFloat(target.dataset.life));
 }
 updateSurvivorCount();
 }
 
-// Zieht EINEM Überlebenden einen Teil seines Lebens ab (z.B. 0.5 = "verwundet"), ohne ihn sofort zu töten sofern noch Leben übrig ist
+// Zieht EINEM Überlebenden einen Teil seines Lebens ab (z.B. 0.5 = "verwundet")
 function damageOneSurvivor(amount) {
 const alive = getAliveSurvivorCards();
 if (alive.length === 0) return;
 const target = alive.reduce((a, b) => parseFloat(a.dataset.life) <= parseFloat(b.dataset.life) ? a : b);
-const newLife = Math.max(0, parseFloat(target.dataset.life) - amount);
-target.dataset.life = newLife.toString();
-updateSurvivorVisual(target);
+applyDamageToSurvivor(target, amount);
 updateSurvivorCount();
 }
 
-function killSingleSurvivor() {
-killSurvivors(1);
+function addReinforcements(count) {
+const grid = document.getElementById('survivors-grid');
+if (!grid) return;
+for (let i = 0; i < count; i++) {
+const icon = GENERIC_SURVIVOR_ICONS[Math.floor(Math.random() * GENERIC_SURVIVOR_ICONS.length)];
+grid.appendChild(createSurvivorCard(icon, 'Verstärkung', false));
+}
+updateSurvivorListVisibility();
+updateSurvivorCount();
 }
 
-function killMultipleSurvivors(count) {
-killSurvivors(count);
+function equipVestOnCard(card) {
+card.dataset.maxLife = (parseFloat(card.dataset.maxLife) + 0.5).toString();
+card.dataset.life = card.dataset.maxLife;
+updateSurvivorVisual(card);
+}
+
+// Rüstet bis zu `count` Überlebende (zuerst Spieler, dann übrige, je max. 1 Weste) mit Schutzwesten aus.
+// Kommt NICHT aus dem gemeinsamen Westen-Vorrat. Gibt die tatsächlich ausgerüstete Anzahl zurück.
+function equipVests(count) {
+let equipped = 0;
+for (let i = 0; i < count; i++) {
+const cards = Array.from(document.querySelectorAll('.survivor-card'));
+const eligible = c => !c.classList.contains('dead') && parseFloat(c.dataset.maxLife) < 1.5;
+const players = cards.filter(c => c.classList.contains('player') && eligible(c));
+const others = cards.filter(c => !c.classList.contains('player') && eligible(c));
+const target = players[0] || others[0];
+if (!target) break;
+equipVestOnCard(target);
+equipped++;
+}
+updateSurvivorCount();
+return equipped;
 }
 
 function getMaxDistForZombie(zombie) {
@@ -1297,6 +1570,10 @@ return 50;
 }
 
 function pushBackTeam(meters) {
+if (activeProfessions.has('sailor')) {
+showEventBanner('⚓ Seebeine: Rückstoß abgewehrt!');
+return;
+}
 if (!distanceEnabled || !currentZombie) return;
 const maxDist = getMaxDistForZombie(currentZombie);
 const timePerMeter = totalZombieTime / maxDist;
@@ -1306,10 +1583,26 @@ updateDistanceDisplay();
 showEventBanner(`🤢 Team wird zurückgeworfen! -${meters}m (gesamt -${currentZombie.pushBackTotal}m)`);
 }
 
+function gainDistance(meters) {
+if (!distanceEnabled || !currentZombie) return;
+const maxDist = getMaxDistForZombie(currentZombie);
+const timePerMeter = totalZombieTime / maxDist;
+remainingZombieTime = Math.min(totalZombieTime, remainingZombieTime + (meters * timePerMeter));
+updateDistanceDisplay();
+showEventBanner(`⚓ Segler-Bonus: +${meters}m Distanz!`);
+}
+
 function handleMiss() {
 if (!currentZombie || isGameOver || isPaused) return;
 
 currentZombie.missed = true;
+
+if (priestShieldRemaining > 0) {
+priestShieldRemaining--;
+showEventBanner(`😇 Schutzengel wehrt den Zombie-Treffer ab! (noch ${priestShieldRemaining}x)`);
+return;
+}
+
 const diff = document.getElementById('difficulty').value;
 
 if (currentZombie.class === 'beisser') {
@@ -1321,6 +1614,8 @@ killSurvivors(3);
 } else if (currentZombie.class === 'schreierin') {
 killSurvivors(1);
 let addCount = (diff === 'easy') ? 3 : (diff === 'medium') ? 5 : 6;
+if (activeProfessions.has('scientist')) addCount = Math.max(0, addCount - 2);
+if (activeProfessions.has('chef')) addCount = Math.round(addCount * 0.25);
 const possibleTypes = ['beisser', 'sprinter', 'bomber', 'schreierin'];
 for (let i = 0; i < addCount; i++) {
 let chosenType = possibleTypes[Math.floor(Math.random() * possibleTypes.length)];
@@ -1330,6 +1625,7 @@ else if (chosenType === 'bomber') zObj = { name: 'Bomber', maxHp: 3, currentHp: 
 else if (chosenType === 'schreierin') zObj = { name: 'Schreierin', maxHp: 2, currentHp: 2, skulls: 2, class: 'schreierin', icon: 'Schreierin.svg' };
 zombiesQueue.push(zObj);
 }
+if (addCount > 0) showEventBanner(`📣 Horde! +${addCount} neue Zombies`);
 document.getElementById('zombie-count').innerText = zombiesQueue.length + 1;
 } else if (currentZombie.class === 'verrueckter') {
 let killCount = getRandomInt(1, 3);
@@ -1446,9 +1742,10 @@ bgBar.style.background = timePercentage > 50 ? '#27ae60' : timePercentage > 20 ?
 function knockbackZombie() {
 if (!distanceEnabled || !currentZombie) return;
 const maxDist = getMaxDistForZombie(currentZombie);
+const knockbackMeters = activeProfessions.has('soldier') ? 10 : 5;
 
 const timePerMeter = totalZombieTime / maxDist;
-remainingZombieTime = Math.min(totalZombieTime, remainingZombieTime + (5 * timePerMeter));
+remainingZombieTime = Math.min(totalZombieTime, remainingZombieTime + (knockbackMeters * timePerMeter));
 updateDistanceDisplay();
 }
 
@@ -1477,15 +1774,31 @@ document.getElementById('health-text').innerText = `${currentZombie.currentHp.to
 if (distanceEnabled) updateDistanceDisplay();
 }
 
-function dealDamage(amount) {
-if (!currentZombie || isGameOver || isPaused) return;
+function checkThresholdBonuses() {
+if (activeProfessions.has('farmer') && !farmerReinforcementFired && initialZombieTotal > 0 &&
+defeatedZombieCount >= Math.ceil(initialZombieTotal * 2 / 3)) {
+farmerReinforcementFired = true;
+addReinforcements(5);
+showEventBanner('🌾 Farmer-Verstärkung trifft ein: +5 Überlebende!');
+}
+if (activeProfessions.has('engineer') && !engineerSupportFired && initialZombieTotal > 0 &&
+defeatedZombieCount >= Math.ceil(initialZombieTotal / 2)) {
+engineerSupportFired = true;
+const equipped = equipVests(5);
+showEventBanner(`🔧 Engineer rüstet ${equipped} Überlebende mit Schutzwesten aus!`);
+}
+}
+
+// Wendet EINEN Schuss auf den aktuellen Zombie an. Gibt true zurück, wenn der Zombie dadurch besiegt wurde.
+function applySingleShot(amount) {
+if (!currentZombie || isGameOver || isPaused) return false;
 
 const applied = (currentZombie.class === 'mutant') ? amount / 2 : amount;
 currentZombie.currentHp -= applied;
 
-// Jeder Kopftreffer-Klick bringt ein Medikit, unabhängig vom (evtl. halbierten) Schaden
 if (amount === 3.0) {
 updateMedikit(1);
+if (activeProfessions.has('sailor')) gainDistance(3);
 }
 
 const box = document.getElementById('zombie-box');
@@ -1496,6 +1809,7 @@ knockbackZombie();
 
 if (currentZombie.currentHp <= 0) {
 currentZombie.currentHp = 0;
+defeatedZombieCount++;
 
 if (currentZombie.class === 'krebs' && !currentZombie.missed) {
 updateMedikit(3);
@@ -1507,10 +1821,39 @@ addVest(1);
 showEventBanner('🦺 Mutant besiegt: Schutzweste erhalten!');
 }
 
+checkThresholdBonuses();
+
 renderZombie();
-setTimeout(nextZombie, 300);
+return true;
 } else {
 renderZombie();
+return false;
+}
+}
+
+function dealDamage(amount) {
+if (!currentZombie || isGameOver || isPaused) return;
+let died = applySingleShot(amount);
+
+if (amount === 3.0) {
+const soldierDouble = activeProfessions.has('soldier') && !distanceEnabled;
+const hasDoubleShot = activeProfessions.has('policeman') || soldierDouble;
+if (hasDoubleShot) {
+if (died) {
+// Der erste Kopftreffer hat den Zombie bereits besiegt: sofort (ohne Verzögerung)
+// zum nächsten Zombie wechseln, damit der Zweitschuss auf dem richtigen Ziel landet.
+nextZombie();
+died = false;
+}
+if (currentZombie && !isGameOver) {
+showEventBanner('🎯 Nachladen! Sofort noch ein Kopftreffer!');
+died = applySingleShot(amount);
+}
+}
+}
+
+if (died) {
+setTimeout(nextZombie, 300);
 }
 }
 
@@ -1524,8 +1867,8 @@ vests = Math.max(0, vests + amount);
 document.getElementById('vest-count').innerText = vests;
 }
 
-// Wendet eine Schutzweste an: zuerst auf Spieler, dann auf übrige Überlebende.
-// Gibt +1 maximales Leben (und volle Heilung), kann Tote NICHT wiederbeleben.
+// Wendet eine Schutzweste aus dem gemeinsamen Vorrat an: zuerst auf Spieler, dann auf übrige Überlebende.
+// Gibt +0,5 maximales Leben (und volle Heilung), kann Tote NICHT wiederbeleben. Max. 1 Weste pro Person.
 function useVest() {
 if (vests <= 0) {
 showEventBanner('🦺 Keine Schutzweste vorhanden!');
@@ -1533,7 +1876,7 @@ return;
 }
 
 const cards = Array.from(document.querySelectorAll('.survivor-card'));
-const eligible = c => !c.classList.contains('dead') && parseFloat(c.dataset.maxLife) < 2;
+const eligible = c => !c.classList.contains('dead') && parseFloat(c.dataset.maxLife) < 1.5;
 const players = cards.filter(c => c.classList.contains('player') && eligible(c));
 const others = cards.filter(c => !c.classList.contains('player') && eligible(c));
 const target = players[0] || others[0];
@@ -1543,9 +1886,7 @@ showEventBanner('🦺 Alle Überlebenden haben bereits eine Weste (oder sind tot
 return;
 }
 
-target.dataset.maxLife = (parseFloat(target.dataset.maxLife) + 1).toString();
-target.dataset.life = target.dataset.maxLife;
-updateSurvivorVisual(target);
+equipVestOnCard(target);
 
 vests -= 1;
 document.getElementById('vest-count').innerText = vests;
