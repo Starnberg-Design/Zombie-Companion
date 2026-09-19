@@ -889,8 +889,8 @@ cursor: pointer;
 <div class="zombie-section-divider">🆕 Neue Zombiearten</div>
 
 <div class="zombie-toggle-item">
-<label class="checkbox-label"><input type="checkbox" id="toggle-haui" checked><img src="Haui.svg" class="toggle-icon" alt="">Haui (Schwächling)</label>
-<div class="zombie-desc">0,5 Leben. Erscheint einzeln und häufiger. Zieht bei „Verfehlt" nur ein halbes Leben ab.</div>
+<label class="checkbox-label"><input type="checkbox" id="toggle-haui" checked><img src="Haui.svg" class="toggle-icon" alt="">Haui (Schwächling & Taschendieb)</label>
+<div class="zombie-desc">0,5 Leben. Erscheint einzeln und häufiger. Zieht bei „Verfehlt" nur ein halbes Leben ab und klaut dabei zusätzlich 1 Medikit (falls vorhanden).</div>
 </div>
 
 <div class="zombie-toggle-item">
@@ -1161,7 +1161,7 @@ bomber: 'Zäher Brocken. Verfehlt: -3 Überlebende auf einmal',
 schreierin: 'Verfehlt: -1 Überlebender + ruft Zombiehorde',
 verrueckter: 'Chaotisch. Verfehlt: -1 bis -3 Überlebende',
 monster: 'Boss. Verfehlt: -2 Überlebende auf einmal',
-haui: 'Schwächling. Verfehlt: -0,5 Leben',
+haui: 'Schwächling & Taschendieb. Verfehlt: -0,5 Leben + klaut 1 Medikit',
 schlurfer: 'Sehr langsam & zäh. Verfehlt: -0,5 Leben',
 krebs: 'Selten. Ohne Fehlschuss besiegt: +3 Medikits',
 spucker: 'Verfehlt: -0,5 Leben + wirft Team zurück',
@@ -1561,7 +1561,9 @@ updateSurvivorListVisibility();
 }
 
 // Wendet einmalig Schaden auf EINEN konkreten Überlebenden an. Mit Schutzweste/Rüstung ist der
-// Schaden pro Treffer auf 0,5 Leben gedeckelt. Löst ggf. den Priester-Tod-Bonus aus.
+// Schaden pro Treffer auf 0,5 Leben gedeckelt. Stirbt der Überlebende dadurch (z.B. durch "Verfehlt"),
+// wird zuerst automatisch ein vorrätiges Medikit verbraucht, um ihn direkt wiederzubeleben. Ist keines
+// vorrätig, bleibt er tot und löst ggf. den Priester-Tod-Bonus aus.
 function applyDamageToSurvivor(target, amount) {
 if (!target) return;
 const vested = target.classList.contains('vested');
@@ -1571,10 +1573,18 @@ const newLife = Math.max(0, parseFloat(target.dataset.life) - dmg);
 target.dataset.life = newLife.toString();
 updateSurvivorVisual(target);
 
-if (wasAlive && newLife <= 0 && target.dataset.profession === 'priest' && !priestDeathBonusFired) {
+if (wasAlive && newLife <= 0) {
+const nm = target.querySelector('.survivor-name').innerText;
+if (medikits > 0) {
+updateMedikit(-1);
+target.dataset.life = target.dataset.maxLife;
+updateSurvivorVisual(target);
+showEventBanner(`💉 Medikit automatisch verbraucht: ${nm} wird sofort wiederbelebt!`);
+} else if (target.dataset.profession === 'priest' && !priestDeathBonusFired) {
 priestDeathBonusFired = true;
 addReinforcements(2);
 showEventBanner('✝️ Der Priester ist gefallen – 2 neue Überlebende schließen sich zur Erinnerung an!');
+}
 }
 }
 
@@ -1705,6 +1715,11 @@ killSurvivors(killCount);
 killSurvivors(2);
 } else if (currentZombie.class === 'haui') {
 damageOneSurvivor(0.5);
+// Taschendieb: der schwächliche Haui nutzt die Verwirrung und klaut zusätzlich ein Medikit, falls vorhanden.
+if (medikits > 0) {
+updateMedikit(-1);
+showEventBanner('🖐️💉 Taschendieb! Haui klaut ein Medikit.');
+}
 } else if (currentZombie.class === 'schlurfer') {
 damageOneSurvivor(0.5);
 } else if (currentZombie.class === 'krebs') {
@@ -1862,6 +1877,28 @@ showEventBanner(`🔧 Engineer rüstet ${equipped} Überlebende mit Schutzwesten
 }
 }
 
+// Wird bei jedem Kopftreffer ausgelöst: Ist gerade ein Überlebender tot, heilt das "Medikit" ihn
+// SOFORT wieder (statt unsichtbar im Vorrat zu verschwinden). Ist niemand tot, wandert das Medikit
+// stattdessen in den Vorrat, der später bei einem "Verfehlt"-Todesfall automatisch verbraucht wird.
+// Beides wird immer gut sichtbar als Ereignis eingeblendet, damit der Effekt nicht übersehen wird.
+function awardHeadshotMedikit() {
+const cards = Array.from(document.querySelectorAll('.survivor-card'));
+const deadPlayers = cards.filter(c => c.classList.contains('player') && c.classList.contains('dead'));
+const deadOthers = cards.filter(c => !c.classList.contains('player') && c.classList.contains('dead'));
+const target = deadPlayers[0] || deadOthers[0];
+
+if (target) {
+target.dataset.life = target.dataset.maxLife;
+updateSurvivorVisual(target);
+updateSurvivorCount();
+const nm = target.querySelector('.survivor-name').innerText;
+showEventBanner(`🎯💉 Kopftreffer heilt sofort: ${nm} ist zurück!`);
+} else {
+updateMedikit(1);
+showEventBanner('🎯💉 Kopftreffer! +1 Medikit (niemand zu heilen)');
+}
+}
+
 // Wendet EINEN Schuss auf den aktuellen Zombie an. Gibt true zurück, wenn der Zombie dadurch besiegt wurde.
 function applySingleShot(amount) {
 if (!currentZombie || isGameOver || isPaused) return false;
@@ -1872,7 +1909,7 @@ const applied = (currentZombie.class === 'mutant' && amount !== 3.0) ? amount / 
 currentZombie.currentHp -= applied;
 
 if (amount === 3.0) {
-updateMedikit(1);
+awardHeadshotMedikit();
 if (activeProfessions.has('sailor')) gainDistance(3);
 }
 
